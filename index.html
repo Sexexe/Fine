@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детектор лжи</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1d23;
+            min-height: 100vh;
+            color: #c8ccd4;
+            padding: 40px 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 40px;
+            border-bottom: 1px solid #2a2e37;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #e8eaed;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #7a7f8a;
+            font-size: 0.9em;
+        }
+
+        .input-section {
+            background: #22262e;
+            border: 1px solid #2a2e37;
+            border-radius: 6px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            color: #e8eaed;
+            margin-bottom: 12px;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 140px;
+            background: #1a1d23;
+            border: 1px solid #2a2e37;
+            border-radius: 4px;
+            padding: 14px;
+            color: #e8eaed;
+            font-size: 0.95em;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4a6cf7;
+        }
+
+        textarea::placeholder {
+            color: #555a65;
+        }
+
+        .btn-analyze {
+            width: 100%;
+            padding: 12px;
+            margin-top: 16px;
+            background: #4a6cf7;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.95em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-analyze:hover {
+            background: #3b5de7;
+        }
+
+        .btn-analyze:active {
+            background: #2f4fd6;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .verdict-card {
+            background: #22262e;
+            border: 1px solid #2a2e37;
+            border-radius: 6px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .verdict-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .verdict-title {
+            font-size: 0.85em;
+            color: #7a7f8a;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .verdict-value {
+            font-size: 2.4em;
+            font-weight: 600;
+            color: #e8eaed;
+            letter-spacing: -0.02em;
+        }
+
+        .meter-bar {
+            height: 8px;
+            background: #1a1d23;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .meter-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease, background 0.8s ease;
+        }
+
+        .meter-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: #555a65;
+            margin-bottom: 20px;
+        }
+
+        .verdict-label {
+            font-size: 0.95em;
+            font-weight: 500;
+            padding: 6px 14px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #2a2e37;
+        }
+
+        .stat-box {
+            text-align: left;
+        }
+
+        .stat-value {
+            font-size: 1.6em;
+            font-weight: 600;
+            color: #e8eaed;
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            font-size: 0.78em;
+            color: #7a7f8a;
+            margin-top: 4px;
+        }
+
+        .panel {
+            background: #22262e;
+            border: 1px solid #2a2e37;
+            border-radius: 6px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .panel-title {
+            font-size: 0.85em;
+            color: #7a7f8a;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .marker-item {
+            border-left: 2px solid #4a6cf7;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            background: #1a1d23;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .marker-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .marker-word {
+            color: #e8eaed;
+            font-weight: 500;
+            font-size: 0.95em;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+        }
+
+        .marker-meta {
+            display: flex;
+            gap: 16px;
+            margin-top: 6px;
+            font-size: 0.82em;
+            color: #7a7f8a;
+            flex-wrap: wrap;
+        }
+
+        .marker-explanation {
+            color: #7a7f8a;
+            font-size: 0.85em;
+            margin-top: 6px;
+        }
+
+        .highlighted-text {
+            background: #1a1d23;
+            border: 1px solid #2a2e37;
+            border-radius: 4px;
+            padding: 16px;
+            line-height: 1.7;
+            font-size: 0.95em;
+            color: #c8ccd4;
+        }
+
+        .highlight {
+            background: rgba(74, 108, 247, 0.2);
+            border-bottom: 1px solid #4a6cf7;
+            padding: 1px 4px;
+            border-radius: 2px;
+        }
+
+        .empty-state {
+            color: #555a65;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+
+        .disclaimer {
+            border-top: 1px solid #2a2e37;
+            padding-top: 20px;
+            margin-top: 32px;
+            font-size: 0.82em;
+            color: #555a65;
+            line-height: 1.6;
+        }
+
+        .disclaimer strong {
+            color: #7a7f8a;
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .verdict-header {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Детектор лжи</h1>
+            <div class="subtitle">Статистический NLP-анализ текстовых паттернов</div>
+        </header>
+
+        <div class="input-section">
+            <label for="textInput">Текст для анализа</label>
+            <textarea id="textInput" placeholder="Вставьте текст для проверки..."></textarea>
+            <button class="btn-analyze" onclick="analyzeText()">Анализировать</button>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="verdict-card">
+                <div class="verdict-header">
+                    <div>
+                        <div class="verdict-title">Индекс достоверности</div>
+                        <div class="verdict-value" id="verdictValue">0%</div>
+                    </div>
+                    <div class="verdict-label" id="verdictLabel">—</div>
+                </div>
+
+                <div class="meter-bar">
+                    <div class="meter-fill" id="meterFill" style="width: 0%;"></div>
+                </div>
+                <div class="meter-labels">
+                    <span>Низкая достоверность</span>
+                    <span>Высокая достоверность</span>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="statMarkers">0</div>
+                        <div class="stat-label">Маркеров найдено</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="statWords">0</div>
+                        <div class="stat-label">Всего слов</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="statDensity">0%</div>
+                        <div class="stat-label">Плотность маркеров</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="statCategories">0</div>
+                        <div class="stat-label">Категорий риска</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">Обнаруженные маркеры</div>
+                <div id="markersList"></div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">Текст с подсветкой</div>
+                <div class="highlighted-text" id="highlightedText"></div>
+            </div>
+
+            <div class="disclaimer">
+                <strong>Примечание:</strong> Инструмент основан на статистических исследованиях лингвистики обмана (Пеннебейкер, Вридж, Экман). 
+                Он не является научным детектором лжи и может давать ложные срабатывания. 
+                Стиль речи, тревожность и культурные особенности влияют на результат.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const lieMarkers = {
+            'uncertainty': {
+                name: 'Неуверенность',
+                description: 'Дистанцирование от утверждения',
+                words: ['возможно', 'наверное', 'кажется', 'вроде', 'по-моему', 'типа', 'как бы', 'допустим', 'предположим', 'может быть', 'вероятно', 'думаю', 'мне кажется', 'я думаю', 'похоже', 'будто', 'словно', 'как будто'],
+                weight: 1.0
+            },
+            'oath': {
+                name: 'Избыточные клятвы',
+                description: 'Попытка усилить убедительность',
+                words: ['честно', 'правда', 'клянусь', 'серьёзно', 'божусь', 'честное слово', 'ей-богу', 'даю слово', 'уверяю', 'гарантирую'],
+                weight: 1.5
+            },
+            'distancing': {
+                name: 'Дистанцирование',
+                description: 'Избегание конкретики',
+                words: ['этот человек', 'та ситуация', 'некий', 'какой-то', 'кто-то', 'что-то', 'где-то', 'когда-то'],
+                weight: 1.3
+            },
+            'negation': {
+                name: 'Отрицания',
+                description: 'Частые отрицательные конструкции',
+                words: ['не', 'никогда', 'ничего', 'никто', 'нигде', 'никак', 'вовсе не', 'отнюдь', 'нисколько', 'нет'],
+                weight: 0.8
+            },
+            'overdetail': {
+                name: 'Избыточные детали',
+                description: 'Попытка сделать утверждение убедительнее',
+                words: ['ровно', 'точно в', 'минута в минуту', 'буквально', 'абсолютно точно', 'помню каждую деталь', 'всё до мелочей', 'подробно', 'детально'],
+                weight: 1.2
+            },
+            'memory_hedge': {
+                name: 'Оговорки о памяти',
+                description: 'Подготовка к возможным нестыковкам',
+                words: ['точно не помню', 'вроде как', 'насколько помню', 'если память не изменяет', 'вроде бы', 'кажется мне', 'я могу ошибаться'],
+                weight: 1.1
+            },
+            'emotion': {
+                name: 'Эмоциональная заряженность',
+                description: 'Попытка отвлечь от сути',
+                words: ['ужасно', 'кошмар', 'невыносимо', 'отвратительно', 'прекрасно', 'замечательно', 'великолепно', 'потрясающе'],
+                weight: 0.9
+            },
+            'passive': {
+                name: 'Пассивные конструкции',
+                description: 'Уход от ответственности',
+                words: ['было сделано', 'было решено', 'произошло', 'случилось', 'получилось', 'вышло так', 'так вышло', 'само собой'],
+                weight: 1.0
+            },
+            'correction': {
+                name: 'Самоисправления',
+                description: 'Уточнения и поправки',
+                words: ['то есть', 'я имею в виду', 'вернее', 'точнее', 'нет, я хотел сказать', 'подождите', 'стоп', 'нет, не так'],
+                weight: 1.2
+            },
+            'temporal': {
+                name: 'Нечёткие временные указания',
+                description: 'Размытые временные маркеры',
+                words: ['как-то', 'однажды', 'в тот день', 'тогда', 'потом', 'затем', 'после этого', 'до этого', 'раньше', 'позже'],
+                weight: 0.7
+            }
+        };
+
+        function analyzeText() {
+            const text = document.getElementById('textInput').value.trim();
+            
+            if (text.length < 10) {
+                alert('Введите текст длиной не менее 10 символов.');
+                return;
+            }
+
+            const textLower = text.toLowerCase();
+            const words = text.split(/\s+/).filter(w => w.length > 0);
+            const wordCount = words.length;
+
+            let totalScore = 0;
+            let foundMarkers = [];
+            let categoriesFound = new Set();
+
+            for (const [category, data] of Object.entries(lieMarkers)) {
+                for (const marker of data.words) {
+                    const markerLower = marker.toLowerCase();
+                    const regex = new RegExp(`\\b${escapeRegex(markerLower)}\\b`, 'gi');
+                    const matches = textLower.match(regex);
+                    
+                    if (matches) {
+                        const count = matches.length;
+                        const score = count * data.weight;
+                        totalScore += score;
+                        categoriesFound.add(category);
+
+                        foundMarkers.push({
+                            word: marker,
+                            category: data.name,
+                            description: data.description,
+                            count: count,
+                            score: score
+                        });
+                    }
+                }
+            }
+
+            const capsWords = text.match(/\b[A-ZА-ЯЁ]{4,}\b/g);
+            if (capsWords && capsWords.length > 2) {
+                totalScore += capsWords.length * 0.5;
+                foundMarkers.push({
+                    word: capsWords.join(', '),
+                    category: 'Эмоциональная заряженность',
+                    description: 'Использование заглавных букв',
+                    count: capsWords.length,
+                    score: capsWords.length * 0.5
+                });
+            }
+
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            const avgSentenceLength = wordCount / Math.max(sentences.length, 1);
+            if (avgSentenceLength > 25) {
+                totalScore += 2;
+                foundMarkers.push({
+                    word: `Средняя длина предложения: ${avgSentenceLength.toFixed(1)} слов`,
+                    category: 'Сложность структуры',
+                    description: 'Длинные предложения могут указывать на попытку запутать',
+                    count: 1,
+                    score: 2
+                });
+            }
+
+            const maxExpectedScore = wordCount * 0.3;
+            const normalizedScore = Math.min((totalScore / maxExpectedScore) * 100, 100);
+            const truthScore = Math.max(100 - normalizedScore, 0);
+
+            displayResults(truthScore, foundMarkers, wordCount, categoriesFound.size, text);
+        }
+
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function displayResults(truthScore, markers, wordCount, categoriesCount, originalText) {
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.style.display = 'block';
+
+            animateValue('verdictValue', 0, Math.round(truthScore), 800, '%');
+
+            const meterFill = document.getElementById('meterFill');
+            setTimeout(() => {
+                meterFill.style.width = truthScore + '%';
+                if (truthScore > 70) {
+                    meterFill.style.background = '#4a6cf7';
+                } else if (truthScore > 40) {
+                    meterFill.style.background = '#f5a623';
+                } else {
+                    meterFill.style.background = '#e74c3c';
+                }
+            }, 50);
+
+            const verdictLabel = document.getElementById('verdictLabel');
+            if (truthScore > 75) {
+                verdictLabel.textContent = 'Высокая достоверность';
+                verdictLabel.style.background = 'rgba(74, 108, 247, 0.15)';
+                verdictLabel.style.color = '#4a6cf7';
+            } else if (truthScore > 50) {
+                verdictLabel.textContent = 'Умеренная достоверность';
+                verdictLabel.style.background = 'rgba(245, 166, 35, 0.15)';
+                verdictLabel.style.color = '#f5a623';
+            } else if (truthScore > 25) {
+                verdictLabel.textContent = 'Низкая достоверность';
+                verdictLabel.style.background = 'rgba(231, 76, 60, 0.15)';
+                verdictLabel.style.color = '#e74c3c';
+            } else {
+                verdictLabel.textContent = 'Критически низкая достоверность';
+                verdictLabel.style.background = 'rgba(231, 76, 60, 0.25)';
+                verdictLabel.style.color = '#e74c3c';
+            }
+
+            document.getElementById('statMarkers').textContent = markers.length;
+            document.getElementById('statWords').textContent = wordCount;
+            const density = markers.length > 0 ? ((markers.length / wordCount) * 100).toFixed(1) : 0;
+            document.getElementById('statDensity').textContent = density + '%';
+            document.getElementById('statCategories').textContent = categoriesCount;
+
+            const markersList = document.getElementById('markersList');
+            if (markers.length === 0) {
+                markersList.innerHTML = '<div class="empty-state">Маркеры недостоверности не обнаружены.</div>';
+            } else {
+                markersList.innerHTML = markers.map(m => `
+                    <div class="marker-item">
+                        <div class="marker-word">"${m.word}"</div>
+                        <div class="marker-meta">
+                            <span>${m.category}</span>
+                            <span>Встречается: ${m.count}×</span>
+                        </div>
+                        <div class="marker-explanation">${m.description}</div>
+                    </div>
+                `).join('');
+            }
+
+            let highlightedText = escapeHtml(originalText);
+            markers.forEach(m => {
+                const regex = new RegExp(`\\b(${escapeRegex(m.word)})\\b`, 'gi');
+                highlightedText = highlightedText.replace(regex, '<span class="highlight">$1</span>');
+            });
+            document.getElementById('highlightedText').innerHTML = highlightedText;
+
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function animateValue(id, start, end, duration, suffix = '') {
+            const obj = document.getElementById(id);
+            const range = end - start;
+            const startTime = new Date().getTime();
+
+            function run() {
+                const now = new Date().getTime();
+                const progress = Math.min((now - startTime) / duration, 1);
+                const value = Math.round(start + range * progress);
+                obj.textContent = value + suffix;
+                if (progress < 1) {
+                    requestAnimationFrame(run);
+                }
+            }
+
+            requestAnimationFrame(run);
+        }
+
+        document.getElementById('textInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                analyzeText();
+            }
+        });
+    </script>
+</body>
+</html>
