@@ -2,8 +2,10 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Детектор лжи</title>
+    <!-- Подключение VK Bridge -->
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -13,60 +15,73 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #1a1d23;
+            background: #1a1d23; /* Темная тема по умолчанию */
             min-height: 100vh;
             color: #c8ccd4;
-            padding: 40px 20px;
+            padding: 20px;
             line-height: 1.5;
+            /* Убираем стандартные отступы для мобильных приложений */
+            overscroll-behavior: none; 
         }
 
         .container {
-            max-width: 860px;
+            max-width: 600px; /* Ограничиваем ширину для мобильного вида */
             margin: 0 auto;
         }
 
         header {
-            margin-bottom: 40px;
-            border-bottom: 1px solid #2a2e37;
-            padding-bottom: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* Стили для иконки детектора лжи */
+        .app-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 4px 12px rgba(74, 108, 247, 0.3));
         }
 
         h1 {
-            font-size: 1.8em;
-            font-weight: 600;
+            font-size: 1.5em;
+            font-weight: 700;
             color: #e8eaed;
             letter-spacing: -0.02em;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .subtitle {
             color: #7a7f8a;
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
 
         .input-section {
             background: #22262e;
             border: 1px solid #2a2e37;
-            border-radius: 6px;
-            padding: 24px;
-            margin-bottom: 24px;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         label {
             display: block;
             color: #e8eaed;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             font-weight: 500;
-            font-size: 0.95em;
+            font-size: 0.9em;
         }
 
         textarea {
             width: 100%;
-            min-height: 140px;
+            min-height: 120px;
             background: #1a1d23;
             border: 1px solid #2a2e37;
-            border-radius: 4px;
-            padding: 14px;
+            border-radius: 8px;
+            padding: 12px;
             color: #e8eaed;
             font-size: 0.95em;
             font-family: inherit;
@@ -85,16 +100,16 @@
 
         .btn-analyze {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             margin-top: 16px;
             background: #4a6cf7;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             color: #fff;
-            font-size: 0.95em;
-            font-weight: 500;
+            font-size: 1em;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: transform 0.1s, background 0.2s;
         }
 
         .btn-analyze:hover {
@@ -102,19 +117,26 @@
         }
 
         .btn-analyze:active {
+            transform: scale(0.98);
             background: #2f4fd6;
         }
 
         .results-section {
             display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .verdict-card {
             background: #22262e;
             border: 1px solid #2a2e37;
-            border-radius: 6px;
-            padding: 28px;
-            margin-bottom: 24px;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
         }
 
         .verdict-header {
@@ -122,76 +144,75 @@
             justify-content: space-between;
             align-items: baseline;
             margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 12px;
         }
 
         .verdict-title {
-            font-size: 0.85em;
+            font-size: 0.8em;
             color: #7a7f8a;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
 
         .verdict-value {
-            font-size: 2.4em;
-            font-weight: 600;
+            font-size: 2.2em;
+            font-weight: 700;
             color: #e8eaed;
             letter-spacing: -0.02em;
         }
 
         .meter-bar {
-            height: 8px;
+            height: 6px;
             background: #1a1d23;
-            border-radius: 4px;
+            border-radius: 3px;
             overflow: hidden;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .meter-fill {
             height: 100%;
-            border-radius: 4px;
-            transition: width 0.8s ease, background 0.8s ease;
+            border-radius: 3px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background 0.8s ease;
         }
 
         .meter-labels {
             display: flex;
             justify-content: space-between;
-            font-size: 0.8em;
+            font-size: 0.75em;
             color: #555a65;
             margin-bottom: 20px;
         }
 
         .verdict-label {
-            font-size: 0.95em;
-            font-weight: 500;
-            padding: 6px 14px;
-            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
             display: inline-block;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-top: 24px;
-            padding-top: 24px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
             border-top: 1px solid #2a2e37;
         }
 
         .stat-box {
-            text-align: left;
+            background: #1a1d23;
+            padding: 12px;
+            border-radius: 8px;
         }
 
         .stat-value {
-            font-size: 1.6em;
-            font-weight: 600;
+            font-size: 1.4em;
+            font-weight: 700;
             color: #e8eaed;
-            letter-spacing: -0.02em;
         }
 
         .stat-label {
-            font-size: 0.78em;
+            font-size: 0.75em;
             color: #7a7f8a;
             margin-top: 4px;
         }
@@ -199,97 +220,74 @@
         .panel {
             background: #22262e;
             border: 1px solid #2a2e37;
-            border-radius: 6px;
-            padding: 24px;
-            margin-bottom: 24px;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
         .panel-title {
-            font-size: 0.85em;
+            font-size: 0.8em;
             color: #7a7f8a;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             margin-bottom: 16px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .marker-item {
-            border-left: 2px solid #4a6cf7;
-            padding: 12px 16px;
+            border-left: 3px solid #4a6cf7;
+            padding: 12px;
             margin-bottom: 10px;
             background: #1a1d23;
-            border-radius: 0 4px 4px 0;
-        }
-
-        .marker-item:last-child {
-            margin-bottom: 0;
+            border-radius: 0 8px 8px 0;
         }
 
         .marker-word {
             color: #e8eaed;
-            font-weight: 500;
-            font-size: 0.95em;
-            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-weight: 600;
+            font-size: 0.9em;
+            font-family: monospace;
         }
 
         .marker-meta {
             display: flex;
-            gap: 16px;
-            margin-top: 6px;
-            font-size: 0.82em;
+            gap: 12px;
+            margin-top: 4px;
+            font-size: 0.75em;
             color: #7a7f8a;
-            flex-wrap: wrap;
-        }
-
-        .marker-explanation {
-            color: #7a7f8a;
-            font-size: 0.85em;
-            margin-top: 6px;
         }
 
         .highlighted-text {
             background: #1a1d23;
             border: 1px solid #2a2e37;
-            border-radius: 4px;
+            border-radius: 8px;
             padding: 16px;
-            line-height: 1.7;
-            font-size: 0.95em;
+            line-height: 1.6;
+            font-size: 0.9em;
             color: #c8ccd4;
+            white-space: pre-wrap;
         }
 
         .highlight {
-            background: rgba(74, 108, 247, 0.2);
-            border-bottom: 1px solid #4a6cf7;
-            padding: 1px 4px;
+            background: rgba(74, 108, 247, 0.25);
+            border-bottom: 2px solid #4a6cf7;
+            padding: 0 2px;
             border-radius: 2px;
-        }
-
-        .empty-state {
-            color: #555a65;
-            font-size: 0.9em;
-            font-style: italic;
+            color: #fff;
         }
 
         .disclaimer {
-            border-top: 1px solid #2a2e37;
-            padding-top: 20px;
-            margin-top: 32px;
-            font-size: 0.82em;
+            font-size: 0.75em;
             color: #555a65;
-            line-height: 1.6;
+            text-align: center;
+            margin-top: 30px;
+            line-height: 1.5;
+            padding: 0 10px;
         }
 
-        .disclaimer strong {
-            color: #7a7f8a;
-        }
-
-        @media (max-width: 600px) {
+        @media (min-width: 600px) {
             .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .verdict-header {
-                flex-direction: column;
+                grid-template-columns: repeat(4, 1fr);
             }
         }
     </style>
@@ -297,14 +295,57 @@
 <body>
     <div class="container">
         <header>
+            <!-- SVG Иконка Детектора Лжи -->
+            <div class="app-icon-wrapper">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Корпус -->
+                    <rect x="10" y="10" width="80" height="80" rx="16" fill="#C0C5CE" stroke="#A0A5B0" stroke-width="2"/>
+                    <rect x="12" y="12" width="76" height="76" rx="14" fill="url(#metalGrad)"/>
+                    
+                    <!-- Экран -->
+                    <circle cx="50" cy="50" r="32" fill="#0F172A" stroke="#334155" stroke-width="2"/>
+                    <circle cx="50" cy="50" r="30" fill="#1E293B"/>
+                    
+                    <!-- Сетка экрана -->
+                    <path d="M20 50 H80 M50 20 V80" stroke="#334155" stroke-width="0.5" opacity="0.5"/>
+                    
+                    <!-- Пульс (Зеленая линия) -->
+                    <path d="M25 50 L35 50 L40 35 L45 65 L50 50 L55 50 L60 40 L65 60 L70 50 L75 50" 
+                          stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                          
+                    <!-- Столбики графика (Синие) -->
+                    <rect x="30" y="60" width="4" height="10" fill="#3B82F6" rx="1"/>
+                    <rect x="36" y="55" width="4" height="15" fill="#3B82F6" rx="1"/>
+                    <rect x="42" y="62" width="4" height="8" fill="#3B82F6" rx="1"/>
+                    <rect x="48" y="50" width="4" height="20" fill="#3B82F6" rx="1"/>
+                    <rect x="54" y="58" width="4" height="12" fill="#3B82F6" rx="1"/>
+                    <rect x="60" y="45" width="4" height="25" fill="#3B82F6" rx="1"/>
+                    
+                    <!-- Провода справа -->
+                    <path d="M85 40 C95 40, 95 70, 85 70" stroke="#94A3B8" stroke-width="3" fill="none"/>
+                    <path d="M88 40 C98 40, 98 70, 88 70" stroke="#94A3B8" stroke-width="3" fill="none"/>
+                    
+                    <!-- Штекеры -->
+                    <rect x="82" y="68" width="6" height="8" rx="1" fill="#EF4444"/>
+                    <rect x="85" y="68" width="6" height="8" rx="1" fill="#3B82F6"/>
+                    
+                    <defs>
+                        <linearGradient id="metalGrad" x1="12" y1="12" x2="88" y2="88" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#E2E8F0"/>
+                            <stop offset="1" stop-color="#94A3B8"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            
             <h1>Детектор лжи</h1>
             <div class="subtitle">Статистический NLP-анализ текстовых паттернов</div>
         </header>
 
         <div class="input-section">
             <label for="textInput">Текст для анализа</label>
-            <textarea id="textInput" placeholder="Вставьте текст для проверки..."></textarea>
-            <button class="btn-analyze" onclick="analyzeText()">Анализировать</button>
+            <textarea id="textInput" placeholder="Вставьте текст сообщения или поста..."></textarea>
+            <button class="btn-analyze" onclick="analyzeText()">Проверить на ложь</button>
         </div>
 
         <div class="results-section" id="resultsSection">
@@ -321,49 +362,78 @@
                     <div class="meter-fill" id="meterFill" style="width: 0%;"></div>
                 </div>
                 <div class="meter-labels">
-                    <span>Низкая достоверность</span>
-                    <span>Высокая достоверность</span>
+                    <span>Ложь</span>
+                    <span>Правда</span>
                 </div>
 
                 <div class="stats-grid">
                     <div class="stat-box">
                         <div class="stat-value" id="statMarkers">0</div>
-                        <div class="stat-label">Маркеров найдено</div>
+                        <div class="stat-label">Маркеров риска</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-value" id="statWords">0</div>
-                        <div class="stat-label">Всего слов</div>
+                        <div class="stat-label">Слов в тексте</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-value" id="statDensity">0%</div>
-                        <div class="stat-label">Плотность маркеров</div>
+                        <div class="stat-label">Плотность лжи</div>
                     </div>
                     <div class="stat-box">
                         <div class="stat-value" id="statCategories">0</div>
-                        <div class="stat-label">Категорий риска</div>
+                        <div class="stat-label">Типов обмана</div>
                     </div>
                 </div>
             </div>
 
             <div class="panel">
-                <div class="panel-title">Обнаруженные маркеры</div>
+                <div class="panel-title">Подозрительные фразы</div>
                 <div id="markersList"></div>
             </div>
 
             <div class="panel">
-                <div class="panel-title">Текст с подсветкой</div>
+                <div class="panel-title">Анализ текста</div>
                 <div class="highlighted-text" id="highlightedText"></div>
             </div>
 
             <div class="disclaimer">
-                <strong>Примечание:</strong> Инструмент основан на статистических исследованиях лингвистики обмана (Пеннебейкер, Вридж, Экман). 
-                Он не является научным детектором лжи и может давать ложные срабатывания. 
-                Стиль речи, тревожность и культурные особенности влияют на результат.
+                Инструмент основан на лингвистических паттернах (Пеннебейкер, Вридж). 
+                Результат носит рекомендательный характер и не является доказательством.
             </div>
         </div>
     </div>
 
     <script>
+        // --- ИНИЦИАЛИЗАЦИЯ VK BRIDGE ---
+        const vkBridge = window.vkBridge;
+        
+        // Отправляем событие готовности приложения
+        vkBridge.send('VKWebAppInit')
+            .then(() => {
+                console.log('VK Bridge initialized');
+                // Опционально: можно сразу запросить тему оформления
+                return vkBridge.send('VKWebAppGetConfig');
+            })
+            .then((data) => {
+                // Если нужно адаптировать цвета под тему пользователя VK
+                if (data && data.appearance) {
+                    document.body.style.background = data.appearance === 'light' ? '#ffffff' : '#1a1d23';
+                    // Здесь можно добавить логику смены классов для светлой темы
+                }
+            })
+            .catch((err) => {
+                console.error('VK Bridge init error:', err);
+            });
+
+        // Обработка навигации назад (кнопка "Назад" в интерфейсе VK)
+        vkBridge.subscribe((event) => {
+            if (event.detail.type === 'VKWebAppBackButton') {
+                // Логика обработки кнопки назад, если нужно
+                console.log('Back button pressed');
+            }
+        });
+        // -----------------------------
+
         const lieMarkers = {
             'uncertainty': {
                 name: 'Неуверенность',
@@ -431,7 +501,12 @@
             const text = document.getElementById('textInput').value.trim();
             
             if (text.length < 10) {
-                alert('Введите текст длиной не менее 10 символов.');
+                // Используем нативный алерт VK, если доступен, иначе стандартный
+                if (vkBridge && vkBridge.supports('VKWebAppShowAlert')) {
+                    vkBridge.send('VKWebAppShowAlert', { message: 'Введите текст длиной не менее 10 символов.' });
+                } else {
+                    alert('Введите текст длиной не менее 10 символов.');
+                }
                 return;
             }
 
@@ -466,13 +541,14 @@
                 }
             }
 
+            // Доп. проверка на CAPS LOCK
             const capsWords = text.match(/\b[A-ZА-ЯЁ]{4,}\b/g);
             if (capsWords && capsWords.length > 2) {
                 totalScore += capsWords.length * 0.5;
                 foundMarkers.push({
                     word: capsWords.join(', '),
-                    category: 'Эмоциональная заряженность',
-                    description: 'Использование заглавных букв',
+                    category: 'Агрессия/Эмоции',
+                    description: 'Использование Caps Lock',
                     count: capsWords.length,
                     score: capsWords.length * 0.5
                 });
@@ -483,9 +559,9 @@
             if (avgSentenceLength > 25) {
                 totalScore += 2;
                 foundMarkers.push({
-                    word: `Средняя длина предложения: ${avgSentenceLength.toFixed(1)} слов`,
-                    category: 'Сложность структуры',
-                    description: 'Длинные предложения могут указывать на попытку запутать',
+                    word: `Средняя длина: ${avgSentenceLength.toFixed(1)} слов`,
+                    category: 'Сложность',
+                    description: 'Запутанные предложения',
                     count: 1,
                     score: 2
                 });
@@ -512,31 +588,31 @@
             setTimeout(() => {
                 meterFill.style.width = truthScore + '%';
                 if (truthScore > 70) {
-                    meterFill.style.background = '#4a6cf7';
+                    meterFill.style.background = '#10B981'; // Green
                 } else if (truthScore > 40) {
-                    meterFill.style.background = '#f5a623';
+                    meterFill.style.background = '#F59E0B'; // Orange
                 } else {
-                    meterFill.style.background = '#e74c3c';
+                    meterFill.style.background = '#EF4444'; // Red
                 }
             }, 50);
 
             const verdictLabel = document.getElementById('verdictLabel');
             if (truthScore > 75) {
-                verdictLabel.textContent = 'Высокая достоверность';
-                verdictLabel.style.background = 'rgba(74, 108, 247, 0.15)';
-                verdictLabel.style.color = '#4a6cf7';
+                verdictLabel.textContent = 'Высокая вероятность правды';
+                verdictLabel.style.background = 'rgba(16, 185, 129, 0.15)';
+                verdictLabel.style.color = '#10B981';
             } else if (truthScore > 50) {
-                verdictLabel.textContent = 'Умеренная достоверность';
-                verdictLabel.style.background = 'rgba(245, 166, 35, 0.15)';
-                verdictLabel.style.color = '#f5a623';
+                verdictLabel.textContent = 'Есть сомнения';
+                verdictLabel.style.background = 'rgba(245, 158, 11, 0.15)';
+                verdictLabel.style.color = '#F59E0B';
             } else if (truthScore > 25) {
-                verdictLabel.textContent = 'Низкая достоверность';
-                verdictLabel.style.background = 'rgba(231, 76, 60, 0.15)';
-                verdictLabel.style.color = '#e74c3c';
+                verdictLabel.textContent = 'Вероятна ложь';
+                verdictLabel.style.background = 'rgba(239, 68, 68, 0.15)';
+                verdictLabel.style.color = '#EF4444';
             } else {
-                verdictLabel.textContent = 'Критически низкая достоверность';
-                verdictLabel.style.background = 'rgba(231, 76, 60, 0.25)';
-                verdictLabel.style.color = '#e74c3c';
+                verdictLabel.textContent = 'Критический уровень лжи';
+                verdictLabel.style.background = 'rgba(239, 68, 68, 0.25)';
+                verdictLabel.style.color = '#EF4444';
             }
 
             document.getElementById('statMarkers').textContent = markers.length;
@@ -547,23 +623,26 @@
 
             const markersList = document.getElementById('markersList');
             if (markers.length === 0) {
-                markersList.innerHTML = '<div class="empty-state">Маркеры недостоверности не обнаружены.</div>';
+                markersList.innerHTML = '<div style="color:#7a7f8a; font-style:italic;">Явных маркеров лжи не обнаружено.</div>';
             } else {
                 markersList.innerHTML = markers.map(m => `
                     <div class="marker-item">
                         <div class="marker-word">"${m.word}"</div>
                         <div class="marker-meta">
                             <span>${m.category}</span>
-                            <span>Встречается: ${m.count}×</span>
+                            <span>×${m.count}</span>
                         </div>
-                        <div class="marker-explanation">${m.description}</div>
+                        <div style="font-size:0.8em; color:#7a7f8a; margin-top:4px;">${m.description}</div>
                     </div>
                 `).join('');
             }
 
             let highlightedText = escapeHtml(originalText);
+            // Сортируем маркеры по длине слова, чтобы заменять сначала длинные фразы
+            markers.sort((a, b) => b.word.length - a.word.length);
+            
             markers.forEach(m => {
-                const regex = new RegExp(`\\b(${escapeRegex(m.word)})\\b`, 'gi');
+                const regex = new RegExp(`(${escapeRegex(m.word)})`, 'gi');
                 highlightedText = highlightedText.replace(regex, '<span class="highlight">$1</span>');
             });
             document.getElementById('highlightedText').innerHTML = highlightedText;
@@ -580,12 +659,13 @@
         function animateValue(id, start, end, duration, suffix = '') {
             const obj = document.getElementById(id);
             const range = end - start;
-            const startTime = new Date().getTime();
+            const startTime = performance.now();
 
-            function run() {
-                const now = new Date().getTime();
-                const progress = Math.min((now - startTime) / duration, 1);
-                const value = Math.round(start + range * progress);
+            function run(currentTime) {
+                const progress = Math.min((currentTime - startTime) / duration, 1);
+                // Easing function for smooth animation
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                const value = Math.round(start + range * easeOutQuart);
                 obj.textContent = value + suffix;
                 if (progress < 1) {
                     requestAnimationFrame(run);
