@@ -15,17 +15,46 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #1a1d23; /* Темная тема по умолчанию */
+            background: #1a1d23;
             min-height: 100vh;
             color: #c8ccd4;
             padding: 20px;
             line-height: 1.5;
-            /* Убираем стандартные отступы для мобильных приложений */
             overscroll-behavior: none; 
         }
 
+        .custom-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-150%);
+            background: #2a2e37;
+            border: 1px solid #4a6cf7;
+            color: #e8eaed;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            font-size: 0.9em;
+            font-weight: 500;
+            z-index: 9999;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 90vw;
+            text-align: center;
+        }
+
+        .custom-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .custom-toast.error {
+            border-color: #EF4444;
+        }
+
         .container {
-            max-width: 600px; /* Ограничиваем ширину для мобильного вида */
+            max-width: 600px;
             margin: 0 auto;
         }
 
@@ -37,7 +66,6 @@
             text-align: center;
         }
 
-        /* Стили для иконки детектора лжи */
         .app-icon-wrapper {
             width: 80px;
             height: 80px;
@@ -109,7 +137,7 @@
             font-size: 1em;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.1s, background 0.2s;
+            transition: transform 0.1s, background 0.2s, opacity 0.2s;
         }
 
         .btn-analyze:hover {
@@ -119,6 +147,25 @@
         .btn-analyze:active {
             transform: scale(0.98);
             background: #2f4fd6;
+        }
+
+        .btn-analyze:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Стили для кнопки рекламы */
+        .btn-ad {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-ad:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
         }
 
         .results-section {
@@ -293,42 +340,32 @@
     </style>
 </head>
 <body>
+    <div id="customToast" class="custom-toast">
+        <span id="toastIcon">ℹ️</span>
+        <span id="customToastMessage">Текст уведомления</span>
+    </div>
+
     <div class="container">
         <header>
-            <!-- SVG Иконка Детектора Лжи -->
             <div class="app-icon-wrapper">
                 <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Корпус -->
                     <rect x="10" y="10" width="80" height="80" rx="16" fill="#C0C5CE" stroke="#A0A5B0" stroke-width="2"/>
                     <rect x="12" y="12" width="76" height="76" rx="14" fill="url(#metalGrad)"/>
-                    
-                    <!-- Экран -->
                     <circle cx="50" cy="50" r="32" fill="#0F172A" stroke="#334155" stroke-width="2"/>
                     <circle cx="50" cy="50" r="30" fill="#1E293B"/>
-                    
-                    <!-- Сетка экрана -->
                     <path d="M20 50 H80 M50 20 V80" stroke="#334155" stroke-width="0.5" opacity="0.5"/>
-                    
-                    <!-- Пульс (Зеленая линия) -->
                     <path d="M25 50 L35 50 L40 35 L45 65 L50 50 L55 50 L60 40 L65 60 L70 50 L75 50" 
                           stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                          
-                    <!-- Столбики графика (Синие) -->
                     <rect x="30" y="60" width="4" height="10" fill="#3B82F6" rx="1"/>
                     <rect x="36" y="55" width="4" height="15" fill="#3B82F6" rx="1"/>
                     <rect x="42" y="62" width="4" height="8" fill="#3B82F6" rx="1"/>
                     <rect x="48" y="50" width="4" height="20" fill="#3B82F6" rx="1"/>
                     <rect x="54" y="58" width="4" height="12" fill="#3B82F6" rx="1"/>
                     <rect x="60" y="45" width="4" height="25" fill="#3B82F6" rx="1"/>
-                    
-                    <!-- Провода справа -->
                     <path d="M85 40 C95 40, 95 70, 85 70" stroke="#94A3B8" stroke-width="3" fill="none"/>
                     <path d="M88 40 C98 40, 98 70, 88 70" stroke="#94A3B8" stroke-width="3" fill="none"/>
-                    
-                    <!-- Штекеры -->
                     <rect x="82" y="68" width="6" height="8" rx="1" fill="#EF4444"/>
                     <rect x="85" y="68" width="6" height="8" rx="1" fill="#3B82F6"/>
-                    
                     <defs>
                         <linearGradient id="metalGrad" x1="12" y1="12" x2="88" y2="88" gradientUnits="userSpaceOnUse">
                             <stop stop-color="#E2E8F0"/>
@@ -345,7 +382,7 @@
         <div class="input-section">
             <label for="textInput">Текст для анализа</label>
             <textarea id="textInput" placeholder="Вставьте текст сообщения или поста..."></textarea>
-            <button class="btn-analyze" onclick="analyzeText()">Проверить на ложь</button>
+            <button class="btn-analyze" id="btnAnalyze" onclick="analyzeText()">Проверить на ложь</button>
         </div>
 
         <div class="results-section" id="resultsSection">
@@ -396,6 +433,18 @@
                 <div class="highlighted-text" id="highlightedText"></div>
             </div>
 
+            <!-- БЛОК РЕКЛАМЫ ЗА ВОЗНАГРАЖДЕНИЕ -->
+            <div class="panel" id="adRewardPanel" style="text-align: center; border-color: #10B981;">
+                <div class="panel-title" style="color: #10B981;">🎁 Поддержка проекта</div>
+                <p style="font-size: 0.85em; color: #7a7f8a; margin-bottom: 16px; line-height: 1.4;">
+                    Посмотрите короткое видео, чтобы поддержать разработку детектора и получить «Бонус кармы» для следующего анализа.
+                </p>
+                <button class="btn-analyze btn-ad" id="btnWatchAd" onclick="showRewardedAd()">
+                    <span>📺</span> Посмотреть рекламу
+                </button>
+            </div>
+            <!-- КОНЕЦ БЛОКА РЕКЛАМЫ -->
+
             <div class="disclaimer">
                 Инструмент основан на лингвистических паттернах (Пеннебейкер, Вридж). 
                 Результат носит рекомендательный характер и не является доказательством.
@@ -404,35 +453,91 @@
     </div>
 
     <script>
-        // --- ИНИЦИАЛИЗАЦИЯ VK BRIDGE ---
         const vkBridge = window.vkBridge;
         
-        // Отправляем событие готовности приложения
-        vkBridge.send('VKWebAppInit')
-            .then(() => {
-                console.log('VK Bridge initialized');
-                // Опционально: можно сразу запросить тему оформления
-                return vkBridge.send('VKWebAppGetConfig');
-            })
-            .then((data) => {
-                // Если нужно адаптировать цвета под тему пользователя VK
-                if (data && data.appearance) {
-                    document.body.style.background = data.appearance === 'light' ? '#ffffff' : '#1a1d23';
-                    // Здесь можно добавить логику смены классов для светлой темы
-                }
-            })
-            .catch((err) => {
-                console.error('VK Bridge init error:', err);
-            });
+        // Инициализация VK Bridge
+        if (vkBridge) {
+            vkBridge.send('VKWebAppInit')
+                .then(() => {
+                    console.log('VK Bridge initialized');
+                    return vkBridge.send('VKWebAppGetConfig');
+                })
+                .then((data) => {
+                    if (data && data.appearance) {
+                        document.body.style.background = data.appearance === 'light' ? '#ffffff' : '#1a1d23';
+                    }
+                })
+                .catch((err) => {
+                    console.error('VK Bridge init error:', err);
+                });
+        }
 
-        // Обработка навигации назад (кнопка "Назад" в интерфейсе VK)
-        vkBridge.subscribe((event) => {
-            if (event.detail.type === 'VKWebAppBackButton') {
-                // Логика обработки кнопки назад, если нужно
-                console.log('Back button pressed');
+        // --- ФУНКЦИЯ ВСТРОЕННОГО УВЕДОМЛЕНИЯ (TOAST) ---
+        function showCustomToast(message, isError = false) {
+            const toast = document.getElementById('customToast');
+            const toastMessage = document.getElementById('customToastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            toastMessage.textContent = message;
+            toastIcon.textContent = isError ? '⚠️' : '✅';
+            
+            if (isError) {
+                toast.classList.add('error');
+            } else {
+                toast.classList.remove('error');
             }
-        });
-        // -----------------------------
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        // --- ФУНКЦИЯ ПОКАЗА РЕКЛАМЫ ЗА ВОЗНАГРАЖДЕНИЕ ---
+        function showRewardedAd() {
+            if (!vkBridge) {
+                showCustomToast('VK Bridge не подключен', true);
+                return;
+            }
+
+            const btn = document.getElementById('btnWatchAd');
+            const originalText = btn.innerHTML;
+            
+            // Блокируем кнопку на время проверки и показа
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳</span> Загрузка рекламы...';
+
+            // 1. Проверяем наличие рекламных материалов (согласно документации VK)
+            vkBridge.send('VKWebAppCheckNativeAds', { ad_format: 'reward' })
+                .then((data) => {
+                    if (data.result) {
+                        // 2. Материалы есть, показываем рекламу
+                        return vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' });
+                    } else {
+                        throw new Error('Рекламные материалы временно недоступны. Попробуйте позже.');
+                    }
+                })
+                .then((showData) => {
+                    if (showData.result) {
+                        // Успешный показ
+                        showCustomToast('🎉 Спасибо за просмотр! Бонус активирован.');
+                        // Здесь можно добавить логику "бонуса", например, разблокировку доп. функций
+                    } else {
+                        showCustomToast('Реклама не была досмотрена до конца.', true);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Ошибка рекламы:', error);
+                    showCustomToast(error.message || 'Не удалось загрузить рекламу.', true);
+                })
+                .finally(() => {
+                    // Возвращаем кнопку в исходное состояние
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                });
+        }
+        // -------------------------------------------------
 
         const lieMarkers = {
             'uncertainty': {
@@ -501,15 +606,24 @@
             const text = document.getElementById('textInput').value.trim();
             
             if (text.length < 10) {
-                // Используем нативный алерт VK, если доступен, иначе стандартный
-                if (vkBridge && vkBridge.supports('VKWebAppShowAlert')) {
-                    vkBridge.send('VKWebAppShowAlert', { message: 'Введите текст длиной не менее 10 символов.' });
-                } else {
-                    alert('Введите текст длиной не менее 10 символов.');
-                }
+                showCustomToast('Введите текст длиной не менее 10 символов.', true);
                 return;
             }
 
+            // Блокируем кнопку анализа на время выполнения
+            const btn = document.getElementById('btnAnalyze');
+            btn.disabled = true;
+            btn.textContent = 'Анализируем...';
+
+            // Имитация небольшой задержки для UX (и фоновой предзагрузки рекламы VK)
+            setTimeout(() => {
+                performAnalysis(text);
+                btn.disabled = false;
+                btn.textContent = 'Проверить на ложь';
+            }, 600);
+        }
+
+        function performAnalysis(text) {
             const textLower = text.toLowerCase();
             const words = text.split(/\s+/).filter(w => w.length > 0);
             const wordCount = words.length;
@@ -541,7 +655,6 @@
                 }
             }
 
-            // Доп. проверка на CAPS LOCK
             const capsWords = text.match(/\b[A-ZА-ЯЁ]{4,}\b/g);
             if (capsWords && capsWords.length > 2) {
                 totalScore += capsWords.length * 0.5;
@@ -588,11 +701,11 @@
             setTimeout(() => {
                 meterFill.style.width = truthScore + '%';
                 if (truthScore > 70) {
-                    meterFill.style.background = '#10B981'; // Green
+                    meterFill.style.background = '#10B981';
                 } else if (truthScore > 40) {
-                    meterFill.style.background = '#F59E0B'; // Orange
+                    meterFill.style.background = '#F59E0B';
                 } else {
-                    meterFill.style.background = '#EF4444'; // Red
+                    meterFill.style.background = '#EF4444';
                 }
             }, 50);
 
@@ -638,7 +751,6 @@
             }
 
             let highlightedText = escapeHtml(originalText);
-            // Сортируем маркеры по длине слова, чтобы заменять сначала длинные фразы
             markers.sort((a, b) => b.word.length - a.word.length);
             
             markers.forEach(m => {
@@ -663,7 +775,6 @@
 
             function run(currentTime) {
                 const progress = Math.min((currentTime - startTime) / duration, 1);
-                // Easing function for smooth animation
                 const easeOutQuart = 1 - Math.pow(1 - progress, 4);
                 const value = Math.round(start + range * easeOutQuart);
                 obj.textContent = value + suffix;
