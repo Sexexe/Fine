@@ -19,6 +19,8 @@
             min-height: 100vh;
             color: #c8ccd4;
             padding: 20px;
+            /* Добавлен отступ снизу, чтобы нативный баннер VK не перекрывал контент */
+            padding-bottom: 80px; 
             line-height: 1.5;
             overscroll-behavior: none; 
         }
@@ -153,19 +155,6 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
-        }
-
-        /* Стили для кнопки рекламы */
-        .btn-ad {
-            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .btn-ad:hover {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
         }
 
         .results-section {
@@ -433,18 +422,6 @@
                 <div class="highlighted-text" id="highlightedText"></div>
             </div>
 
-            <!-- БЛОК РЕКЛАМЫ ЗА ВОЗНАГРАЖДЕНИЕ -->
-            <div class="panel" id="adRewardPanel" style="text-align: center; border-color: #10B981;">
-                <div class="panel-title" style="color: #10B981;">🎁 Поддержка проекта</div>
-                <p style="font-size: 0.85em; color: #7a7f8a; margin-bottom: 16px; line-height: 1.4;">
-                    Посмотрите короткое видео, чтобы поддержать разработку детектора и получить «Бонус кармы» для следующего анализа.
-                </p>
-                <button class="btn-analyze btn-ad" id="btnWatchAd" onclick="showRewardedAd()">
-                    <span>📺</span> Посмотреть рекламу
-                </button>
-            </div>
-            <!-- КОНЕЦ БЛОКА РЕКЛАМЫ -->
-
             <div class="disclaimer">
                 Инструмент основан на лингвистических паттернах (Пеннебейкер, Вридж). 
                 Результат носит рекомендательный характер и не является доказательством.
@@ -494,50 +471,23 @@
             }, 3500);
         }
 
-        // --- ФУНКЦИЯ ПОКАЗА РЕКЛАМЫ ЗА ВОЗНАГРАЖДЕНИЕ ---
-        function showRewardedAd() {
-            if (!vkBridge) {
-                showCustomToast('VK Bridge не подключен', true);
-                return;
-            }
-
-            const btn = document.getElementById('btnWatchAd');
-            const originalText = btn.innerHTML;
+        // --- ФУНКЦИЯ ПОКАЗА БАННЕРНОЙ РЕКЛАМЫ ---
+        function showBannerAd() {
+            if (!vkBridge) return;
             
-            // Блокируем кнопку на время проверки и показа
-            btn.disabled = true;
-            btn.innerHTML = '<span>⏳</span> Загрузка рекламы...';
-
-            // 1. Проверяем наличие рекламных материалов (согласно документации VK)
-            vkBridge.send('VKWebAppCheckNativeAds', { ad_format: 'reward' })
-                .then((data) => {
-                    if (data.result) {
-                        // 2. Материалы есть, показываем рекламу
-                        return vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' });
-                    } else {
-                        throw new Error('Рекламные материалы временно недоступны. Попробуйте позже.');
-                    }
-                })
-                .then((showData) => {
-                    if (showData.result) {
-                        // Успешный показ
-                        showCustomToast('🎉 Спасибо за просмотр! Бонус активирован.');
-                        // Здесь можно добавить логику "бонуса", например, разблокировку доп. функций
-                    } else {
-                        showCustomToast('Реклама не была досмотрена до конца.', true);
-                    }
-                })
-                .catch((error) => {
-                    console.error('Ошибка рекламы:', error);
-                    showCustomToast(error.message || 'Не удалось загрузить рекламу.', true);
-                })
-                .finally(() => {
-                    // Возвращаем кнопку в исходное состояние
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                });
+            // Вызываем нативный баннер ВКонтакте внизу экрана
+            vkBridge.send('VKWebAppShowBannerAd', {
+                banner_location: 'bottom'
+            }).then((data) => { 
+                if (data.result) {
+                    console.log('Баннерная реклама успешно отображена');
+                }
+            }).catch((error) => {
+                // Ошибки баннера пишем только в консоль, чтобы не беспокоить пользователя тостами
+                console.log('Ошибка показа баннера:', error);
+            });
         }
-        // -------------------------------------------------
+        // ----------------------------------------
 
         const lieMarkers = {
             'uncertainty': {
@@ -610,12 +560,10 @@
                 return;
             }
 
-            // Блокируем кнопку анализа на время выполнения
             const btn = document.getElementById('btnAnalyze');
             btn.disabled = true;
             btn.textContent = 'Анализируем...';
 
-            // Имитация небольшой задержки для UX (и фоновой предзагрузки рекламы VK)
             setTimeout(() => {
                 performAnalysis(text);
                 btn.disabled = false;
@@ -760,6 +708,10 @@
             document.getElementById('highlightedText').innerHTML = highlightedText;
 
             resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // === ВЫЗОВ БАННЕРНОЙ РЕКЛАМЫ ПРИ ПОКАЗЕ РЕЗУЛЬТАТОВ ===
+            // Это лучший момент: пользователь вовлечен и читает результат
+            showBannerAd();
         }
 
         function escapeHtml(text) {
