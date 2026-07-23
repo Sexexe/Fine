@@ -1,748 +1,1177 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Детектор лжи</title>
-    <!-- Подключение VK Bridge -->
-    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<title>DJ BOX PRO</title>
+<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
+<script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+<style>
+:root{
+  --bg:#000;
+  --surface:#0d0d0d;
+  --elevated:#1a1a1a;
+  --separator:#2a2a2a;
+  --white:#ffffff;
+  --white-90:rgba(255,255,255,.9);
+  --white-70:rgba(255,255,255,.7);
+  --white-50:rgba(255,255,255,.5);
+  --white-30:rgba(255,255,255,.3);
+  --white-15:rgba(255,255,255,.15);
+  --white-08:rgba(255,255,255,.08);
+  --white-04:rgba(255,255,255,.04);
+  /* Линии фейдеров в 2 раза темнее */
+  --fader-track:rgba(255,255,255,.08);
+  --blue:#4a3aff;
+  --blue-bright:#6b5aff;
+  --blue-deep:#2a1acc;
+  --blue-glow:rgba(74,58,255,.5);
+  --blue-soft:rgba(74,58,255,.2);
+  --red:#ff3b30;
+  --red-bright:#ff5549;
+  --red-deep:#cc2a20;
+  --red-glow:rgba(255,59,48,.5);
+  --radius-lg:18px;
+  --radius-md:12px;
+  --radius-sm:8px;
+  --fader-length:120px;
+  --fader-gap:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif;
+  background:var(--bg);
+  color:var(--white);
+  height:100vh;height:100dvh;
+  overflow:hidden;
+  user-select:none;-webkit-user-select:none;
+  -webkit-font-smoothing:antialiased;
+  letter-spacing:-0.01em;
+}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #1a1d23;
-            min-height: 100vh;
-            color: #c8ccd4;
-            padding: 20px;
-            /* Добавлен отступ снизу, чтобы нативный баннер VK не перекрывал контент */
-            padding-bottom: 80px; 
-            line-height: 1.5;
-            overscroll-behavior: none; 
-        }
+.rotate-warning{
+  display:none;
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:var(--bg);
+  z-index:9999;
+  align-items:center;justify-content:center;
+  flex-direction:column;gap:20px;
+  text-align:center;padding:40px;
+}
+.rotate-warning .icon{font-size:64px;animation:rotatePhone 2s ease-in-out infinite}
+@keyframes rotatePhone{
+  0%,100%{transform:rotate(0deg)}
+  50%{transform:rotate(90deg)}
+}
+.rotate-warning .text{
+  font-size:16px;font-weight:600;
+  color:var(--white-70);
+  letter-spacing:0.02em;
+}
 
-        .custom-toast {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-150%);
-            background: #2a2e37;
-            border: 1px solid #4a6cf7;
-            color: #e8eaed;
-            padding: 12px 20px;
-            border-radius: 10px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-            font-size: 0.9em;
-            font-weight: 500;
-            z-index: 9999;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            max-width: 90vw;
-            text-align: center;
-        }
+@media(max-width:900px) and (orientation:portrait){
+  .rotate-warning{display:flex}
+  .console{display:none}
+}
 
-        .custom-toast.show {
-            transform: translateX(-50%) translateY(0);
-        }
+.console{
+  width:100%;height:100vh;height:100dvh;
+  background:linear-gradient(180deg,#050505 0%,#000 100%);
+  display:flex;flex-direction:column;
+  padding:8px;gap:8px;
+}
 
-        .custom-toast.error {
-            border-color: #EF4444;
-        }
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;
+  background:rgba(20,20,20,.7);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--white-08);
+  border-radius:var(--radius-lg);
+  flex-shrink:0;
+}
+.logo{
+  font-size:14px;font-weight:600;
+  letter-spacing:0.02em;
+  color:var(--white);
+}
+.logo span{
+  color:var(--blue-bright);
+  font-weight:700;
+  margin-left:2px;
+}
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
+.rec-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 14px;
+  background:var(--white-08);
+  border:1px solid var(--white-15);
+  border-radius:20px;
+  color:var(--white);
+  font-size:11px;font-weight:600;
+  letter-spacing:0.02em;
+  cursor:pointer;transition:all .25s ease;
+}
+.rec-btn:hover{background:var(--white-15)}
+.rec-btn.recording{
+  background:var(--red);
+  border-color:var(--red-bright);
+  color:var(--white);
+  animation:recPulse 1.5s ease-in-out infinite;
+}
+@keyframes recPulse{
+  0%,100%{box-shadow:0 0 0 0 var(--red-glow)}
+  50%{box-shadow:0 0 0 10px rgba(255,59,48,0)}
+}
+.rec-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--white);
+  transition:all .25s;
+}
+.rec-btn.recording .rec-dot{background:var(--white);box-shadow:0 0 8px var(--white)}
 
-        header {
-            margin-bottom: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
+.main{
+  flex:1;display:flex;flex-direction:row;gap:8px;
+  min-height:0;
+}
 
-        .app-icon-wrapper {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 15px;
-            filter: drop-shadow(0 4px 12px rgba(74, 108, 247, 0.3));
-        }
+.deck{
+  flex:1;
+  background:rgba(15,15,15,.6);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--white-08);
+  border-radius:var(--radius-lg);
+  padding:12px;
+  display:flex;flex-direction:column;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  min-height:0;
+  overflow:hidden;
+}
+.deck-label{
+  font-size:9px;font-weight:600;
+  letter-spacing:0.08em;
+  color:var(--white-70);
+  text-transform:uppercase;
+  padding:2px 10px;
+  background:var(--white-04);
+  border-radius:10px;
+  flex-shrink:0;
+}
+.deck-label span{color:var(--blue-bright);font-weight:700}
 
-        h1 {
-            font-size: 1.5em;
-            font-weight: 700;
-            color: #e8eaed;
-            letter-spacing: -0.02em;
-            margin-bottom: 6px;
-        }
+.turntable{
+  position:relative;
+  width:120px;height:120px;
+  flex-shrink:0;
+  background:radial-gradient(circle,#1a1a1a 0%,#050505 100%);
+  border-radius:50%;
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,.8),
+    0 4px 16px rgba(0,0,0,.5),
+    inset 0 0 0 1px var(--white-08);
+  cursor:pointer;
+  transition:transform .2s;
+}
+.turntable:hover{transform:scale(1.02)}
+@media(min-width:1100px){
+  .turntable{width:150px;height:150px}
+}
+.platter{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:92%;height:92%;
+  border-radius:50%;
+  background:
+    repeating-radial-gradient(circle at center,transparent 0px,transparent 3px,var(--white-04) 3px,var(--white-04) 4px),
+    radial-gradient(circle,#050505 0%,#1a1a1a 40%,#050505 41%,#1a1a1a 100%);
+  box-shadow:inset 0 0 15px rgba(0,0,0,.6);
+}
+.label{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:32%;height:32%;
+  border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,var(--blue-bright) 0%,var(--blue) 60%,var(--blue-deep) 100%);
+  box-shadow:0 0 12px var(--blue-glow),inset 0 -2px 4px rgba(0,0,0,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:8px;font-weight:700;color:var(--white);
+  letter-spacing:0.05em;
+}
+.spindle{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:7px;height:7px;
+  border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,var(--white-70) 0%,#3a3a3c 100%);
+}
+.tonearm{
+  position:absolute;top:6px;right:6px;
+  width:3px;height:48px;
+  background:linear-gradient(180deg,var(--white-50) 0%,#3a3a3c 100%);
+  border-radius:2px;
+  transform-origin:top center;
+  transform:rotate(-25deg);
+  box-shadow:0 2px 4px rgba(0,0,0,.5);
+}
+@media(min-width:1100px){
+  .tonearm{height:60px}
+}
 
-        .subtitle {
-            color: #7a7f8a;
-            font-size: 0.85em;
-        }
+.info-display{
+  width:100%;max-width:200px;
+  background:rgba(0,0,0,.5);
+  border:1px solid var(--white-08);
+  border-radius:var(--radius-md);
+  padding:5px 8px;
+  text-align:center;
+  flex-shrink:0;
+}
+/* Названия треков немного крупнее */
+.track-name{
+  font-size:11px;font-weight:500;
+  color:var(--white);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+/* BPM немного мельче */
+.bpm-display{
+  font-size:15px;font-weight:700;
+  color:var(--blue-bright);
+  letter-spacing:0.02em;
+  font-variant-numeric:tabular-nums;
+  margin-top:1px;
+}
+@media(min-width:1100px){
+  .bpm-display{font-size:18px}
+}
 
-        .input-section {
-            background: #22262e;
-            border: 1px solid #2a2e37;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+.time-display{
+  width:100%;max-width:200px;
+  background:rgba(0,0,0,.5);
+  border:1px solid var(--white-08);
+  border-radius:var(--radius-md);
+  padding:3px 8px;
+  text-align:center;
+  flex-shrink:0;
+}
+.time-text{
+  font-size:11px;font-weight:600;
+  color:var(--blue-bright);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:0.03em;
+}
 
-        label {
-            display: block;
-            color: #e8eaed;
-            margin-bottom: 10px;
-            font-weight: 500;
-            font-size: 0.9em;
-        }
+.controls-row{
+  display:flex;gap:10px;align-items:center;
+  flex-shrink:0;
+}
+.play-btn{
+  width:38px;height:38px;
+  border-radius:50%;border:none;
+  background:var(--white-08);
+  color:var(--white);
+  font-size:14px;
+  cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,.4),inset 0 1px 0 var(--white-08);
+  transition:all .2s ease;
+  display:flex;align-items:center;justify-content:center;
+}
+@media(min-width:1100px){
+  .play-btn{width:44px;height:44px;font-size:16px}
+}
+.play-btn:hover{background:var(--white-15)}
+.play-btn:active{transform:scale(.94)}
+.play-btn.active{
+  background:var(--blue);
+  color:var(--white);
+  box-shadow:0 0 16px var(--blue-glow);
+}
+.play-btn:disabled{opacity:.3;cursor:not-allowed}
 
-        textarea {
-            width: 100%;
-            min-height: 120px;
-            background: #1a1d23;
-            border: 1px solid #2a2e37;
-            border-radius: 8px;
-            padding: 12px;
-            color: #e8eaed;
-            font-size: 0.95em;
-            font-family: inherit;
-            resize: vertical;
-            transition: border-color 0.2s;
-        }
+.loop-btn{
+  width:32px;height:32px;
+  border-radius:50%;border:none;
+  background:var(--white-08);
+  color:var(--white);
+  font-size:12px;
+  cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,.4),inset 0 1px 0 var(--white-08);
+  transition:all .2s ease;
+  display:flex;align-items:center;justify-content:center;
+}
+@media(min-width:1100px){
+  .loop-btn{width:36px;height:36px;font-size:14px}
+}
+.loop-btn:hover{background:var(--white-15)}
+.loop-btn:active{transform:scale(.94)}
+.loop-btn.active{
+  background:var(--blue);
+  color:var(--white);
+  box-shadow:0 0 12px var(--blue-glow);
+}
+.loop-btn:disabled{opacity:.3;cursor:not-allowed}
 
-        textarea:focus {
-            outline: none;
-            border-color: #4a6cf7;
-        }
+.eq-panel{
+  width:100%;max-width:320px;
+  background:rgba(0,0,0,.4);
+  border:1px solid var(--white-08);
+  border-radius:var(--radius-md);
+  padding:10px;
+  display:flex;
+  gap:var(--fader-gap);
+  flex-shrink:0;
+  align-items:center;
+  justify-content:center;
+}
+.eq-sliders{
+  display:flex;
+  flex-direction:column;
+  gap:var(--fader-gap);
+}
+.eq-row{
+  display:flex;
+  align-items:center;
+  gap:var(--fader-gap);
+}
+.eq-label{
+  font-size:8px;font-weight:600;
+  letter-spacing:0.05em;
+  color:var(--white-70);
+  text-transform:uppercase;
+  width:32px;
+  flex-shrink:0;
+}
+/* Линии EQ фейдеров в 2 раза темнее */
+.eq-slider{
+  -webkit-appearance:none;appearance:none;
+  width:var(--fader-length);
+  height:4px;
+  background:var(--fader-track);
+  border:none;
+  border-radius:2px;
+  outline:none;cursor:pointer;
+  flex-shrink:0;
+}
+/* Круглые ручки на EQ */
+.eq-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:16px;height:16px;
+  background:linear-gradient(180deg,var(--white) 0%,var(--white-70) 100%);
+  border-radius:50%;
+  cursor:pointer;
+  box-shadow:0 2px 4px rgba(0,0,0,.5);
+}
+.eq-slider::-moz-range-thumb{
+  width:16px;height:16px;
+  background:linear-gradient(180deg,var(--white) 0%,var(--white-70) 100%);
+  border-radius:50%;
+  cursor:pointer;
+  border:none;
+}
+.eq-value{
+  font-size:9px;font-weight:600;
+  color:var(--white);
+  font-variant-numeric:tabular-nums;
+  width:28px;
+  text-align:right;
+  flex-shrink:0;
+}
 
-        textarea::placeholder {
-            color: #555a65;
-        }
+/* INV кнопка в 2 раза короче */
+.inv-btn{
+  width:36px;
+  height:75px;
+  border-radius:var(--radius-sm);
+  border:1px solid var(--white-15);
+  background:var(--white-08);
+  color:var(--white);
+  font-size:9px;font-weight:700;
+  letter-spacing:0.05em;
+  cursor:pointer;
+  transition:all .2s ease;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  text-transform:uppercase;
+}
+.inv-btn:hover{background:var(--white-15)}
+.inv-btn:active{transform:scale(.94)}
+.inv-btn.active{
+  background:var(--blue);
+  border-color:var(--blue-bright);
+  color:var(--white);
+  box-shadow:0 0 12px var(--blue-glow);
+}
 
-        .btn-analyze {
-            width: 100%;
-            padding: 14px;
-            margin-top: 16px;
-            background: #4a6cf7;
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.1s, background 0.2s, opacity 0.2s;
-        }
+.mixer{
+  background:rgba(15,15,15,.6);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--white-08);
+  border-radius:var(--radius-lg);
+  padding:12px 8px;
+  display:flex;flex-direction:column;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  min-height:0;
+}
+@media(min-width:1100px){
+  .mixer{width:160px;flex:0 0 160px}
+}
+.mixer-title{
+  font-size:9px;font-weight:600;
+  letter-spacing:0.1em;
+  color:var(--white-70);
+  text-transform:uppercase;
+  flex-shrink:0;
+}
 
-        .btn-analyze:hover {
-            background: #3b5de7;
-        }
+.swap-btn{
+  width:42px;height:42px;
+  border-radius:var(--radius-md);border:none;
+  background:var(--white-08);
+  color:var(--white);
+  font-size:16px;
+  cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,.4),inset 0 1px 0 var(--white-08);
+  transition:all .2s ease;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+@media(min-width:1100px){
+  .swap-btn{width:48px;height:48px;font-size:20px}
+}
+.swap-btn:hover{background:var(--white-15);transform:scale(1.05)}
+.swap-btn:active{transform:scale(.94)}
 
-        .btn-analyze:active {
-            transform: scale(0.98);
-            background: #2f4fd6;
-        }
+.sync-btn{
+  width:58px;height:58px;
+  border-radius:50%;border:none;
+  background:
+    radial-gradient(circle at 30% 30%,var(--white-30) 0%,transparent 50%),
+    linear-gradient(180deg,var(--blue-bright) 0%,var(--blue) 50%,var(--blue-deep) 100%);
+  color:var(--white);
+  font-size:10px;font-weight:700;
+  letter-spacing:0.08em;
+  cursor:pointer;
+  box-shadow:
+    inset 0 1px 0 var(--white-30),
+    inset 0 -3px 6px rgba(0,0,0,.3),
+    0 4px 16px var(--blue-glow);
+  transition:all .2s ease;
+  position:relative;
+  animation:syncPulse 2s ease-in-out infinite;
+  flex-shrink:0;
+}
+@media(min-width:1100px){
+  .sync-btn{width:70px;height:70px;font-size:12px}
+}
+@keyframes syncPulse{
+  0%,100%{
+    box-shadow:
+      inset 0 1px 0 var(--white-30),
+      inset 0 -3px 6px rgba(0,0,0,.3),
+      0 4px 16px var(--blue-glow),
+      0 0 0 0 var(--blue-glow);
+  }
+  50%{
+    box-shadow:
+      inset 0 1px 0 var(--white-30),
+      inset 0 -3px 6px rgba(0,0,0,.3),
+      0 4px 24px var(--blue-glow),
+      0 0 0 12px rgba(74,58,255,0);
+  }
+}
+.sync-btn:hover{transform:scale(1.05);animation-duration:1s}
+.sync-btn:active{transform:scale(.94)}
+.sync-btn.syncing{animation:syncActive .5s ease-in-out infinite}
+@keyframes syncActive{
+  0%,100%{box-shadow:inset 0 1px 0 var(--white-30),0 4px 28px var(--blue-glow),0 0 0 0 var(--blue-glow)}
+  50%{box-shadow:inset 0 1px 0 var(--white-30),0 4px 36px var(--blue-glow),0 0 0 16px rgba(74,58,255,0)}
+}
+.sync-btn::before{
+  content:'';position:absolute;top:5px;left:5px;right:5px;bottom:5px;
+  border-radius:50%;border:1px solid var(--white-15);
+}
 
-        .btn-analyze:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
+/* Линии громкости раздвинуты на 1мм (~4px) больше */
+.faders-row{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  width:100%;
+  flex-shrink:0;
+  padding:10px 0;
+  border-top:1px solid var(--white-08);
+  border-bottom:1px solid var(--white-08);
+}
+.fader-group{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+}
+.fader-label{
+  font-size:7px;font-weight:600;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  color:var(--white-70);
+  flex-shrink:0;
+}
+.fader-label.master{color:var(--blue-bright);font-weight:700}
+.fader-value{
+  font-size:8px;font-weight:600;
+  font-variant-numeric:tabular-nums;
+  color:var(--white);
+  flex-shrink:0;
+}
+.fader-value.master{color:var(--blue-bright)}
 
-        .results-section {
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
+/* Линии фейдеров громкости в 2 раза темнее */
+.fader-slider{
+  -webkit-appearance:none;appearance:none;
+  width:5px;
+  height:var(--fader-length);
+  background:var(--fader-track);
+  border:none;
+  border-radius:3px;
+  outline:none;cursor:pointer;
+  writing-mode:vertical-lr;
+  direction:rtl;
+  flex-shrink:0;
+}
+/* Круглые ручки на громкости */
+.fader-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:16px;height:16px;
+  background:linear-gradient(180deg,var(--white) 0%,var(--white-70) 100%);
+  border-radius:50%;
+  cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,.5);
+}
+.fader-slider::-moz-range-thumb{
+  width:16px;height:16px;
+  background:linear-gradient(180deg,var(--white) 0%,var(--white-70) 100%);
+  border-radius:50%;
+  cursor:pointer;
+  border:none;
+}
+/* Круглая ручка Master чуть крупнее */
+.fader-slider.master::-webkit-slider-thumb{
+  background:linear-gradient(180deg,var(--blue-bright) 0%,var(--blue) 100%);
+  width:20px;height:20px;
+  border-radius:50%;
+  box-shadow:0 2px 8px var(--blue-glow);
+}
+.fader-slider.master::-moz-range-thumb{
+  background:linear-gradient(180deg,var(--blue-bright) 0%,var(--blue) 100%);
+  width:20px;height:20px;
+  border-radius:50%;
+}
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+.vu-meter{
+  width:100%;height:5px;
+  background:rgba(0,0,0,.5);
+  border:1px solid var(--white-08);
+  border-radius:3px;
+  overflow:hidden;
+  flex-shrink:0;
+}
+.vu-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--white-70) 0%,var(--white) 60%,var(--blue-bright) 100%);
+  transition:width .05s;
+  border-radius:3px;
+}
 
-        .verdict-card {
-            background: #22262e;
-            border: 1px solid #2a2e37;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
-        }
+.status{
+  text-align:center;font-size:9px;font-weight:500;
+  color:var(--white-70);
+  padding:4px 10px;
+  background:rgba(15,15,15,.6);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--white-08);
+  border-radius:var(--radius-md);
+  font-variant-numeric:tabular-nums;
+  flex-shrink:0;
+}
 
-        .verdict-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 20px;
-        }
-
-        .verdict-title {
-            font-size: 0.8em;
-            color: #7a7f8a;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .verdict-value {
-            font-size: 2.2em;
-            font-weight: 700;
-            color: #e8eaed;
-            letter-spacing: -0.02em;
-        }
-
-        .meter-bar {
-            height: 6px;
-            background: #1a1d23;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-
-        .meter-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background 0.8s ease;
-        }
-
-        .meter-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75em;
-            color: #555a65;
-            margin-bottom: 20px;
-        }
-
-        .verdict-label {
-            font-size: 0.9em;
-            font-weight: 600;
-            padding: 6px 12px;
-            border-radius: 20px;
-            display: inline-block;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #2a2e37;
-        }
-
-        .stat-box {
-            background: #1a1d23;
-            padding: 12px;
-            border-radius: 8px;
-        }
-
-        .stat-value {
-            font-size: 1.4em;
-            font-weight: 700;
-            color: #e8eaed;
-        }
-
-        .stat-label {
-            font-size: 0.75em;
-            color: #7a7f8a;
-            margin-top: 4px;
-        }
-
-        .panel {
-            background: #22262e;
-            border: 1px solid #2a2e37;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .panel-title {
-            font-size: 0.8em;
-            color: #7a7f8a;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 16px;
-            font-weight: 600;
-        }
-
-        .marker-item {
-            border-left: 3px solid #4a6cf7;
-            padding: 12px;
-            margin-bottom: 10px;
-            background: #1a1d23;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .marker-word {
-            color: #e8eaed;
-            font-weight: 600;
-            font-size: 0.9em;
-            font-family: monospace;
-        }
-
-        .marker-meta {
-            display: flex;
-            gap: 12px;
-            margin-top: 4px;
-            font-size: 0.75em;
-            color: #7a7f8a;
-        }
-
-        .highlighted-text {
-            background: #1a1d23;
-            border: 1px solid #2a2e37;
-            border-radius: 8px;
-            padding: 16px;
-            line-height: 1.6;
-            font-size: 0.9em;
-            color: #c8ccd4;
-            white-space: pre-wrap;
-        }
-
-        .highlight {
-            background: rgba(74, 108, 247, 0.25);
-            border-bottom: 2px solid #4a6cf7;
-            padding: 0 2px;
-            border-radius: 2px;
-            color: #fff;
-        }
-
-        .disclaimer {
-            font-size: 0.75em;
-            color: #555a65;
-            text-align: center;
-            margin-top: 30px;
-            line-height: 1.5;
-            padding: 0 10px;
-        }
-
-        @media (min-width: 600px) {
-            .stats-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-    </style>
+input[type=file]{display:none}
+</style>
 </head>
 <body>
-    <div id="customToast" class="custom-toast">
-        <span id="toastIcon">ℹ️</span>
-        <span id="customToastMessage">Текст уведомления</span>
+
+<div class="rotate-warning">
+  <div class="icon">📱</div>
+  <div class="text">Поверните телефон горизонтально</div>
+</div>
+
+<div class="console">
+  <div class="header">
+    <div class="logo">DJ BOX<span>PRO</span></div>
+    <button class="rec-btn" id="recBtn" onclick="toggleRecording()">
+      <div class="rec-dot"></div>
+      <span id="recLabel">REC MIX</span>
+    </button>
+  </div>
+
+  <div class="main">
+    <div class="deck">
+      <div class="deck-label">DECK <span>A</span></div>
+      <div class="turntable" onclick="document.getElementById('file1').click()">
+        <div class="platter"><div class="label">A</div><div class="spindle"></div></div>
+        <div class="tonearm"></div>
+      </div>
+      <div class="info-display">
+        <div class="track-name" id="name1">— NO TRACK —</div>
+        <div class="bpm-display" id="bpm1">---.-</div>
+      </div>
+      <div class="time-display">
+        <div class="time-text" id="time1">00:00 / 00:00</div>
+      </div>
+      <div class="controls-row">
+        <button class="play-btn" id="play1" onclick="togglePlay(1)" disabled>▶</button>
+        <button class="loop-btn" id="loop1" onclick="toggleLoop(1)" disabled>🔁</button>
+      </div>
+      <div class="eq-panel">
+        <div class="eq-sliders">
+          <div class="eq-row">
+            <div class="eq-label">Bass</div>
+            <input type="range" class="eq-slider" id="bass1" min="-24" max="24" value="0" step="1" oninput="updateEQ(1)">
+            <div class="eq-value" id="bassVal1">0</div>
+          </div>
+          <div class="eq-row">
+            <div class="eq-label">Trbl</div>
+            <input type="range" class="eq-slider" id="trbl1" min="-24" max="24" value="0" step="1" oninput="updateEQ(1)">
+            <div class="eq-value" id="trblVal1">0</div>
+          </div>
+          <div class="eq-row">
+            <div class="eq-label">Delay</div>
+            <input type="range" class="eq-slider" id="delay1" min="0" max="1000" value="0" step="10" oninput="updateEQ(1)">
+            <div class="eq-value" id="delayVal1">0</div>
+          </div>
+        </div>
+        <button class="inv-btn" id="invert1" onclick="toggleInvert(1)">INV</button>
+      </div>
+      <input type="file" id="file1" accept="audio/*" onchange="loadTrack(1,this)">
     </div>
 
-    <div class="container">
-        <header>
-            <div class="app-icon-wrapper">
-                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="10" y="10" width="80" height="80" rx="16" fill="#C0C5CE" stroke="#A0A5B0" stroke-width="2"/>
-                    <rect x="12" y="12" width="76" height="76" rx="14" fill="url(#metalGrad)"/>
-                    <circle cx="50" cy="50" r="32" fill="#0F172A" stroke="#334155" stroke-width="2"/>
-                    <circle cx="50" cy="50" r="30" fill="#1E293B"/>
-                    <path d="M20 50 H80 M50 20 V80" stroke="#334155" stroke-width="0.5" opacity="0.5"/>
-                    <path d="M25 50 L35 50 L40 35 L45 65 L50 50 L55 50 L60 40 L65 60 L70 50 L75 50" 
-                          stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                    <rect x="30" y="60" width="4" height="10" fill="#3B82F6" rx="1"/>
-                    <rect x="36" y="55" width="4" height="15" fill="#3B82F6" rx="1"/>
-                    <rect x="42" y="62" width="4" height="8" fill="#3B82F6" rx="1"/>
-                    <rect x="48" y="50" width="4" height="20" fill="#3B82F6" rx="1"/>
-                    <rect x="54" y="58" width="4" height="12" fill="#3B82F6" rx="1"/>
-                    <rect x="60" y="45" width="4" height="25" fill="#3B82F6" rx="1"/>
-                    <path d="M85 40 C95 40, 95 70, 85 70" stroke="#94A3B8" stroke-width="3" fill="none"/>
-                    <path d="M88 40 C98 40, 98 70, 88 70" stroke="#94A3B8" stroke-width="3" fill="none"/>
-                    <rect x="82" y="68" width="6" height="8" rx="1" fill="#EF4444"/>
-                    <rect x="85" y="68" width="6" height="8" rx="1" fill="#3B82F6"/>
-                    <defs>
-                        <linearGradient id="metalGrad" x1="12" y1="12" x2="88" y2="88" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#E2E8F0"/>
-                            <stop offset="1" stop-color="#94A3B8"/>
-                        </linearGradient>
-                    </defs>
-                </svg>
-            </div>
-            
-            <h1>Детектор лжи</h1>
-            <div class="subtitle">Статистический NLP-анализ текстовых паттернов</div>
-        </header>
-
-        <div class="input-section">
-            <label for="textInput">Текст для анализа</label>
-            <textarea id="textInput" placeholder="Вставьте текст сообщения или поста..."></textarea>
-            <button class="btn-analyze" id="btnAnalyze" onclick="analyzeText()">Проверить на ложь</button>
+    <div class="mixer">
+      <div class="mixer-title">Mixer</div>
+      <button class="swap-btn" onclick="swapDecks()" title="Swap tracks">⇄</button>
+      <button class="sync-btn" id="syncBtn" onclick="syncDecks()">SYNC</button>
+      <div class="faders-row">
+        <div class="fader-group">
+          <div class="fader-label">A</div>
+          <div class="fader-value" id="volVal1">80</div>
+          <input type="range" class="fader-slider" id="vol1" min="0" max="100" value="80" step="1" oninput="updateVolume(1)">
         </div>
-
-        <div class="results-section" id="resultsSection">
-            <div class="verdict-card">
-                <div class="verdict-header">
-                    <div>
-                        <div class="verdict-title">Индекс достоверности</div>
-                        <div class="verdict-value" id="verdictValue">0%</div>
-                    </div>
-                    <div class="verdict-label" id="verdictLabel">—</div>
-                </div>
-
-                <div class="meter-bar">
-                    <div class="meter-fill" id="meterFill" style="width: 0%;"></div>
-                </div>
-                <div class="meter-labels">
-                    <span>Ложь</span>
-                    <span>Правда</span>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <div class="stat-value" id="statMarkers">0</div>
-                        <div class="stat-label">Маркеров риска</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="statWords">0</div>
-                        <div class="stat-label">Слов в тексте</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="statDensity">0%</div>
-                        <div class="stat-label">Плотность лжи</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="statCategories">0</div>
-                        <div class="stat-label">Типов обмана</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-title">Подозрительные фразы</div>
-                <div id="markersList"></div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-title">Анализ текста</div>
-                <div class="highlighted-text" id="highlightedText"></div>
-            </div>
-
-            <div class="disclaimer">
-                Инструмент основан на лингвистических паттернах (Пеннебейкер, Вридж). 
-                Результат носит рекомендательный характер и не является доказательством.
-            </div>
+        <div class="fader-group">
+          <div class="fader-label master">M</div>
+          <div class="fader-value master" id="masterVal">80</div>
+          <input type="range" class="fader-slider master" id="masterVol" min="0" max="100" value="80" step="1" oninput="updateMaster()">
         </div>
+        <div class="fader-group">
+          <div class="fader-label">B</div>
+          <div class="fader-value" id="volVal2">80</div>
+          <input type="range" class="fader-slider" id="vol2" min="0" max="100" value="80" step="1" oninput="updateVolume(2)">
+        </div>
+      </div>
+      <div class="vu-meter"><div class="vu-fill" id="vuFill"></div></div>
     </div>
 
-    <script>
-        const vkBridge = window.vkBridge;
-        
-        // Инициализация VK Bridge
-        if (vkBridge) {
-            vkBridge.send('VKWebAppInit')
-                .then(() => {
-                    console.log('VK Bridge initialized');
-                    return vkBridge.send('VKWebAppGetConfig');
-                })
-                .then((data) => {
-                    if (data && data.appearance) {
-                        document.body.style.background = data.appearance === 'light' ? '#ffffff' : '#1a1d23';
-                    }
-                })
-                .catch((err) => {
-                    console.error('VK Bridge init error:', err);
-                });
+    <div class="deck">
+      <div class="deck-label">DECK <span>B</span></div>
+      <div class="turntable" onclick="document.getElementById('file2').click()">
+        <div class="platter"><div class="label">B</div><div class="spindle"></div></div>
+        <div class="tonearm"></div>
+      </div>
+      <div class="info-display">
+        <div class="track-name" id="name2">— NO TRACK —</div>
+        <div class="bpm-display" id="bpm2">---.-</div>
+      </div>
+      <div class="time-display">
+        <div class="time-text" id="time2">00:00 / 00:00</div>
+      </div>
+      <div class="controls-row">
+        <button class="play-btn" id="play2" onclick="togglePlay(2)" disabled>▶</button>
+        <button class="loop-btn" id="loop2" onclick="toggleLoop(2)" disabled>🔁</button>
+      </div>
+      <div class="eq-panel">
+        <div class="eq-sliders">
+          <div class="eq-row">
+            <div class="eq-label">Bass</div>
+            <input type="range" class="eq-slider" id="bass2" min="-24" max="24" value="0" step="1" oninput="updateEQ(2)">
+            <div class="eq-value" id="bassVal2">0</div>
+          </div>
+          <div class="eq-row">
+            <div class="eq-label">Trbl</div>
+            <input type="range" class="eq-slider" id="trbl2" min="-24" max="24" value="0" step="1" oninput="updateEQ(2)">
+            <div class="eq-value" id="trblVal2">0</div>
+          </div>
+          <div class="eq-row">
+            <div class="eq-label">Delay</div>
+            <input type="range" class="eq-slider" id="delay2" min="0" max="1000" value="0" step="10" oninput="updateEQ(2)">
+            <div class="eq-value" id="delayVal2">0</div>
+          </div>
+        </div>
+        <button class="inv-btn" id="invert2" onclick="toggleInvert(2)">INV</button>
+      </div>
+      <input type="file" id="file2" accept="audio/*" onchange="loadTrack(2,this)">
+    </div>
+  </div>
+
+  <div class="status" id="status">Ready • Load Tracks to Begin</div>
+</div>
+
+<script>
+let audioCtx=null,masterGain=null,analyser=null,vuAnimId=null,timeUpdateId=null;
+let trackLoadCount=0;
+
+const decks={
+  1:{buffer:null,reversedBuffer:null,source:null,bassFilter:null,trebleFilter:null,invertGain:null,delayNode:null,delayFb:null,delayWet:null,delayDry:null,channelGain:null,bpm:0,peakOffset:0,playing:false,loop:false,startTime:0,pauseOffset:0,inverted:false,chainBuilt:false},
+  2:{buffer:null,reversedBuffer:null,source:null,bassFilter:null,trebleFilter:null,invertGain:null,delayNode:null,delayFb:null,delayWet:null,delayDry:null,channelGain:null,bpm:0,peakOffset:0,playing:false,loop:false,startTime:0,pauseOffset:0,inverted:false,chainBuilt:false}
+};
+
+let isRecording=false,mixRecorder=null,mixStreamDest=null,mixChunks=[],recStartTime=0,recTimer=null;
+
+function isVK(){
+  return window.vkBridge && typeof window.vkBridge.send === 'function';
+}
+
+if(isVK()){
+  window.vkBridge.send('VKWebAppInit').catch(e=>console.warn('VK init:',e));
+}
+
+function showInterstitialAd(){
+  if(!isVK()) return;
+  window.vkBridge.send('VKWebAppShowNativeAds',{ad_format:'interstitial'})
+    .then(data=>console.log('Ad shown:',data))
+    .catch(err=>console.warn('Ad not available:',err));
+}
+
+function initAudio(){
+  if(!audioCtx){
+    try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return false}
+    masterGain=audioCtx.createGain();masterGain.gain.value=0.8;
+    analyser=audioCtx.createAnalyser();analyser.fftSize=256;
+    masterGain.connect(analyser);analyser.connect(audioCtx.destination);
+    startVUMeter();startTimeUpdater();
+  }
+  if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});
+  return true;
+}
+
+function startVUMeter(){
+  const bl=analyser.frequencyBinCount,da=new Uint8Array(bl),vf=document.getElementById('vuFill');
+  (function u(){analyser.getByteFrequencyData(da);let s=0;for(let i=0;i<bl;i++)s+=da[i];vf.style.width=Math.min(100,(s/bl/128)*100)+'%';vuAnimId=requestAnimationFrame(u)})();
+}
+
+function startTimeUpdater(){
+  (function u(){
+    for(let n=1;n<=2;n++){
+      const d=decks[n];if(!d.buffer)continue;
+      const td=d.buffer.duration;
+      let ct=d.playing?Math.max(0,audioCtx.currentTime-d.startTime):d.pauseOffset;
+      if(d.loop&&ct>=td)ct=ct%td;
+      ct=Math.max(0,Math.min(td,ct));
+      document.getElementById('time'+n).textContent=
+        String(Math.floor(ct/60)).padStart(2,'0')+':'+String(Math.floor(ct%60)).padStart(2,'0')+' / '+
+        String(Math.floor(td/60)).padStart(2,'0')+':'+String(Math.floor(td%60)).padStart(2,'0');
+    }
+    timeUpdateId=requestAnimationFrame(u);
+  })();
+}
+
+function reverseBuffer(b){
+  const r=audioCtx.createBuffer(b.numberOfChannels,b.length,b.sampleRate);
+  for(let c=0;c<b.numberOfChannels;c++){const s=b.getChannelData(c),d=r.getChannelData(c);for(let i=0;i<s.length;i++)d[i]=s[s.length-1-i]}
+  return r;
+}
+
+function buildAudioChain(n){
+  const d=decks[n];
+  try{
+    d.bassFilter=audioCtx.createBiquadFilter();d.bassFilter.type='lowshelf';d.bassFilter.frequency.value=100;d.bassFilter.gain.value=0;
+    d.trebleFilter=audioCtx.createBiquadFilter();d.trebleFilter.type='highshelf';d.trebleFilter.frequency.value=8000;d.trebleFilter.gain.value=0;
+    d.invertGain=audioCtx.createGain();d.invertGain.gain.value=1;
+    d.delayNode=audioCtx.createDelay(2);d.delayNode.delayTime.value=0;
+    d.delayFb=audioCtx.createGain();d.delayFb.gain.value=0.4;
+    d.delayWet=audioCtx.createGain();d.delayWet.gain.value=0;
+    d.delayDry=audioCtx.createGain();d.delayDry.gain.value=1;
+    d.channelGain=audioCtx.createGain();d.channelGain.gain.value=0.8;
+    d.bassFilter.connect(d.trebleFilter);d.trebleFilter.connect(d.invertGain);
+    d.invertGain.connect(d.delayDry);d.delayDry.connect(d.channelGain);
+    d.invertGain.connect(d.delayNode);d.delayNode.connect(d.delayFb);d.delayFb.connect(d.delayNode);d.delayNode.connect(d.delayWet);d.delayWet.connect(d.channelGain);
+    d.channelGain.connect(masterGain);
+    d.chainBuilt=true;return true;
+  }catch(e){return false}
+}
+
+async function loadTrack(n,input){
+  const f=input.files[0];if(!f)return;
+  if(!initAudio())return;
+  setStatus('Loading Deck '+(n===1?'A':'B')+'…');
+  try{
+    const ab=await audioCtx.decodeAudioData(await f.arrayBuffer());
+    const d=decks[n];
+    d.buffer=ab;d.reversedBuffer=reverseBuffer(ab);d.pauseOffset=0;d.playing=false;d.inverted=false;d.chainBuilt=false;
+    document.getElementById('invert'+n).classList.remove('active');
+    if(!buildAudioChain(n)){setStatus('Chain Failed');return}
+    d.bpm=detectBPM(ab);d.peakOffset=findFirstPeak(ab);
+    document.getElementById('name'+n).textContent=f.name;
+    document.getElementById('bpm'+n).textContent=d.bpm>0?d.bpm.toFixed(1):'---.-';
+    const pb=document.getElementById('play'+n);pb.disabled=false;pb.textContent='▶';pb.classList.remove('active');
+    document.getElementById('loop'+n).disabled=false;
+    setStatus('Deck '+(n===1?'A':'B')+' Loaded'+(d.bpm>0?' • '+d.bpm.toFixed(1)+' BPM':''));
+
+    trackLoadCount++;
+    if(trackLoadCount>0 && trackLoadCount%2===0){
+      showInterstitialAd();
+    }
+
+  }catch(e){setStatus('Load Error')}
+}
+
+function startSource(n,offset){
+  const d=decks[n];if(!d.buffer||!d.chainBuilt)return false;
+  if(d.source){try{d.source.stop()}catch(e){}try{d.source.disconnect()}catch(e){}d.source=null}
+  try{
+    d.source=audioCtx.createBufferSource();
+    d.source.buffer=d.inverted?d.reversedBuffer:d.buffer;
+    d.source.connect(d.bassFilter);
+    d.source.start(0,Math.max(0,offset));
+    d.startTime=audioCtx.currentTime-offset;d.playing=true;
+    d.source.onended=()=>{
+      if(d.playing){
+        if(d.loop){startSource(n,0)}
+        else{d.playing=false;d.pauseOffset=0;const b=document.getElementById('play'+n);if(b){b.classList.remove('active');b.textContent='▶'}}
+      }
+    };
+    const b=document.getElementById('play'+n);if(b){b.classList.add('active');b.textContent='❚❚'}
+    return true;
+  }catch(e){return false}
+}
+
+function togglePlay(n){
+  const d=decks[n];if(!d.buffer)return;
+  if(!initAudio())return;
+  if(d.playing){
+    d.pauseOffset=Math.max(0,audioCtx.currentTime-d.startTime);
+    if(d.source){try{d.source.stop()}catch(e){}try{d.source.disconnect()}catch(e){}d.source=null}
+    d.playing=false;
+    const b=document.getElementById('play'+n);if(b){b.classList.remove('active');b.textContent='▶'}
+    setStatus('Deck '+(n===1?'A':'B')+' Paused');
+  }else{
+    if(startSource(n,d.pauseOffset))setStatus('Deck '+(n===1?'A':'B')+' Playing'+(d.inverted?' • Rev':'')+(d.loop?' • Loop':''));
+    else setStatus('Play Failed');
+  }
+}
+
+function toggleLoop(n){
+  const d=decks[n];if(!d.buffer)return;
+  d.loop=!d.loop;
+  const b=document.getElementById('loop'+n);
+  d.loop?b.classList.add('active'):b.classList.remove('active');
+  setStatus('Deck '+(n===1?'A':'B')+(d.loop?' • Loop On':' • Loop Off'));
+}
+
+function swapDecks(){
+  const d1=decks[1],d2=decks[2];
+  if(!d1.buffer&&!d2.buffer){setStatus('No Tracks');return}
+  const wp1=d1.playing,wp2=d2.playing;
+  const p1=wp1?(audioCtx.currentTime-d1.startTime):d1.pauseOffset;
+  const p2=wp2?(audioCtx.currentTime-d2.startTime):d2.pauseOffset;
+  if(d1.source){try{d1.source.stop()}catch(e){}d1.source=null}
+  if(d2.source){try{d2.source.stop()}catch(e){}d2.source=null}
+  d1.playing=false;d2.playing=false;
+  [d1.buffer,d2.buffer]=[d2.buffer,d1.buffer];
+  [d1.reversedBuffer,d2.reversedBuffer]=[d2.reversedBuffer,d1.reversedBuffer];
+  [d1.bpm,d2.bpm]=[d2.bpm,d1.bpm];
+  [d1.peakOffset,d2.peakOffset]=[d2.peakOffset,d1.peakOffset];
+  [d1.inverted,d2.inverted]=[d2.inverted,d1.inverted];
+  [d1.loop,d2.loop]=[d2.loop,d1.loop];
+  const n1=document.getElementById('name1').textContent,n2=document.getElementById('name2').textContent;
+  document.getElementById('name1').textContent=d1.buffer?n2:'— NO TRACK —';
+  document.getElementById('name2').textContent=d2.buffer?n1:'— NO TRACK —';
+  document.getElementById('bpm1').textContent=d1.bpm>0?d1.bpm.toFixed(1):'---.-';
+  document.getElementById('bpm2').textContent=d2.bpm>0?d2.bpm.toFixed(1):'---.-';
+  d1.loop?document.getElementById('loop1').classList.add('active'):document.getElementById('loop1').classList.remove('active');
+  d2.loop?document.getElementById('loop2').classList.add('active'):document.getElementById('loop2').classList.remove('active');
+  d1.inverted?document.getElementById('invert1').classList.add('active'):document.getElementById('invert1').classList.remove('active');
+  d2.inverted?document.getElementById('invert2').classList.add('active'):document.getElementById('invert2').classList.remove('active');
+  if(wp1&&d2.buffer)startSource(2,Math.min(p1,d2.buffer.duration));else if(d2.buffer)d2.pauseOffset=Math.min(p1,d2.buffer.duration);
+  if(wp2&&d1.buffer)startSource(1,Math.min(p2,d1.buffer.duration));else if(d1.buffer)d1.pauseOffset=Math.min(p2,d1.buffer.duration);
+  setStatus('✓ Swapped');
+}
+
+async function syncDecks(){
+  if(!decks[1].buffer||!decks[2].buffer){setStatus('Load Both Decks');return}
+  const btn=document.getElementById('syncBtn');btn.classList.add('syncing');setStatus('Syncing…');
+  decks[1].bpm=detectBPM(decks[1].buffer);decks[2].bpm=detectBPM(decks[2].buffer);
+  decks[1].peakOffset=findFirstPeak(decks[1].buffer);decks[2].peakOffset=findFirstPeak(decks[2].buffer);
+  document.getElementById('bpm1').textContent=decks[1].bpm>0?decks[1].bpm.toFixed(1):'---.-';
+  document.getElementById('bpm2').textContent=decks[2].bpm>0?decks[2].bpm.toFixed(1):'---.-';
+  if(!decks[1].bpm||!decks[2].bpm){setStatus('BPM Failed');btn.classList.remove('syncing');return}
+  const r=decks[1].bpm/decks[2].bpm;
+  const p1t=decks[1].peakOffset/decks[1].buffer.sampleRate;
+  const p2t=decks[2].peakOffset/decks[2].buffer.sampleRate;
+  const ph=p1t-p2t/r;
+  if(decks[2].source)decks[2].source.playbackRate.value=r;
+  if(decks[2].playing&&decks[1].playing){
+    decks[2].pauseOffset=Math.max(0,audioCtx.currentTime-decks[2].startTime+ph);
+    startSource(2,decks[2].pauseOffset);
+    if(decks[2].source)decks[2].source.playbackRate.value=r;
+  }else if(decks[2].playing){decks[2].pauseOffset=Math.max(0,decks[2].pauseOffset+ph)}
+  setTimeout(()=>{btn.classList.remove('syncing');setStatus('✓ Synced • '+decks[1].bpm.toFixed(1)+' = '+decks[2].bpm.toFixed(1)+' BPM')},800);
+}
+
+function updateEQ(n){
+  const d=decks[n];if(!d.chainBuilt)return;
+  const b=parseFloat(document.getElementById('bass'+n).value);
+  const t=parseFloat(document.getElementById('trbl'+n).value);
+  const dl=parseFloat(document.getElementById('delay'+n).value);
+  d.bassFilter.gain.value=b;d.trebleFilter.gain.value=t;d.delayNode.delayTime.value=dl/1000;
+  d.delayWet.gain.value=dl>0?0.4:0;d.delayDry.gain.value=dl>0?0.8:1;
+  document.getElementById('bassVal'+n).textContent=b>0?'+'+b:b;
+  document.getElementById('trblVal'+n).textContent=t>0?'+'+t:t;
+  document.getElementById('delayVal'+n).textContent=dl;
+}
+
+function toggleInvert(n){
+  const d=decks[n];if(!d.chainBuilt)return;
+  const w=d.inverted;d.inverted=!d.inverted;
+  d.invertGain.gain.value=d.inverted?-1:1;
+  const btn=document.getElementById('invert'+n);
+  d.inverted?btn.classList.add('active'):btn.classList.remove('active');
+  if(w!==d.inverted){
+    const dur=d.buffer.duration;
+    if(d.playing){
+      const co=audioCtx.currentTime-d.startTime;
+      startSource(n,Math.max(0,Math.min(dur,dur-co)));
+      if(n===2&&d.source&&decks[1].bpm&&decks[2].bpm)d.source.playbackRate.value=decks[1].bpm/decks[2].bpm;
+    }else{d.pauseOffset=Math.max(0,Math.min(dur,dur-d.pauseOffset))}
+    setStatus('Deck '+(n===1?'A':'B')+(d.inverted?' • Reversed':' • Normal'));
+  }
+}
+
+function updateVolume(n){
+  const d=decks[n];if(!d.chainBuilt)return;
+  const v=parseFloat(document.getElementById('vol'+n).value);
+  d.channelGain.gain.value=v/100;
+  document.getElementById('volVal'+n).textContent=Math.round(v);
+}
+
+function updateMaster(){
+  if(!masterGain)return;
+  const v=parseFloat(document.getElementById('masterVol').value);
+  masterGain.gain.value=v/100;
+  document.getElementById('masterVal').textContent=Math.round(v);
+}
+
+async function toggleRecording(){
+  if(!initAudio())return;
+  const btn=document.getElementById('recBtn'),lb=document.getElementById('recLabel');
+
+  if(!isRecording){
+    try{
+      mixStreamDest=audioCtx.createMediaStreamDestination();
+      masterGain.connect(mixStreamDest);
+      mixChunks=[];
+
+      let mimeType='';
+      const mimeList=[
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/mp4',
+        'audio/ogg;codecs=opus',
+        'audio/ogg',
+        ''
+      ];
+      for(const mt of mimeList){
+        if(!mt || (typeof MediaRecorder!=='undefined' && MediaRecorder.isTypeSupported(mt))){
+          mimeType=mt;
+          break;
+        }
+      }
+
+      const recorderOptions={};
+      if(mimeType) recorderOptions.mimeType=mimeType;
+
+      mixRecorder=new MediaRecorder(mixStreamDest.stream, recorderOptions);
+
+      mixRecorder.ondataavailable=e=>{
+        if(e.data && e.data.size>0) mixChunks.push(e.data);
+      };
+
+      mixRecorder.start(250);
+      isRecording=true;recStartTime=Date.now();
+      btn.classList.add('recording');lb.textContent='REC • 00:00';
+      recTimer=setInterval(()=>{
+        const e=Math.floor((Date.now()-recStartTime)/1000);
+        lb.textContent='REC • '+String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0');
+      },1000);
+      setStatus('● Recording…');
+    }catch(e){
+      console.error('Recording init error:',e);
+      setStatus('Rec Error: '+e.message);
+    }
+  }else{
+    clearInterval(recTimer);
+    btn.classList.remove('recording');
+    lb.textContent='REC MIX';
+    setStatus('Processing…');
+
+    mixRecorder.onstop=async()=>{
+      try{
+        if(mixStreamDest){
+          try{masterGain.disconnect(mixStreamDest)}catch(e){}
+        }
+        if(!mixChunks.length){setStatus('No Audio Recorded');return}
+
+        const actualMime=mixRecorder.mimeType||'audio/webm';
+        const rawBlob=new Blob(mixChunks,{type:actualMime});
+
+        if(rawBlob.size<1000){
+          setStatus('Recording too short');
+          mixChunks=[];mixStreamDest=null;mixRecorder=null;
+          return;
         }
 
-        // --- ФУНКЦИЯ ВСТРОЕННОГО УВЕДОМЛЕНИЯ (TOAST) ---
-        function showCustomToast(message, isError = false) {
-            const toast = document.getElementById('customToast');
-            const toastMessage = document.getElementById('customToastMessage');
-            const toastIcon = document.getElementById('toastIcon');
-            
-            toastMessage.textContent = message;
-            toastIcon.textContent = isError ? '⚠️' : '✅';
-            
-            if (isError) {
-                toast.classList.add('error');
-            } else {
-                toast.classList.remove('error');
-            }
-            
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3500);
-        }
+        setStatus('Processing MP3…');
 
-        // --- ФУНКЦИЯ ПОКАЗА БАННЕРНОЙ РЕКЛАМЫ ---
-        function showBannerAd() {
-            if (!vkBridge) return;
-            
-            // Вызываем нативный баннер ВКонтакте внизу экрана
-            vkBridge.send('VKWebAppShowBannerAd', {
-                banner_location: 'bottom'
-            }).then((data) => { 
-                if (data.result) {
-                    console.log('Баннерная реклама успешно отображена');
-                }
-            }).catch((error) => {
-                // Ошибки баннера пишем только в консоль, чтобы не беспокоить пользователя тостами
-                console.log('Ошибка показа баннера:', error);
-            });
-        }
-        // ----------------------------------------
+        try{
+          const arr=await rawBlob.arrayBuffer();
+          const ab=await audioCtx.decodeAudioData(arr);
+          const mp3=await convertToMP3(ab);
 
-        const lieMarkers = {
-            'uncertainty': {
-                name: 'Неуверенность',
-                description: 'Дистанцирование от утверждения',
-                words: ['возможно', 'наверное', 'кажется', 'вроде', 'по-моему', 'типа', 'как бы', 'допустим', 'предположим', 'может быть', 'вероятно', 'думаю', 'мне кажется', 'я думаю', 'похоже', 'будто', 'словно', 'как будто'],
-                weight: 1.0
-            },
-            'oath': {
-                name: 'Избыточные клятвы',
-                description: 'Попытка усилить убедительность',
-                words: ['честно', 'правда', 'клянусь', 'серьёзно', 'божусь', 'честное слово', 'ей-богу', 'даю слово', 'уверяю', 'гарантирую'],
-                weight: 1.5
-            },
-            'distancing': {
-                name: 'Дистанцирование',
-                description: 'Избегание конкретики',
-                words: ['этот человек', 'та ситуация', 'некий', 'какой-то', 'кто-то', 'что-то', 'где-то', 'когда-то'],
-                weight: 1.3
-            },
-            'negation': {
-                name: 'Отрицания',
-                description: 'Частые отрицательные конструкции',
-                words: ['не', 'никогда', 'ничего', 'никто', 'нигде', 'никак', 'вовсе не', 'отнюдь', 'нисколько', 'нет'],
-                weight: 0.8
-            },
-            'overdetail': {
-                name: 'Избыточные детали',
-                description: 'Попытка сделать утверждение убедительнее',
-                words: ['ровно', 'точно в', 'минута в минуту', 'буквально', 'абсолютно точно', 'помню каждую деталь', 'всё до мелочей', 'подробно', 'детально'],
-                weight: 1.2
-            },
-            'memory_hedge': {
-                name: 'Оговорки о памяти',
-                description: 'Подготовка к возможным нестыковкам',
-                words: ['точно не помню', 'вроде как', 'насколько помню', 'если память не изменяет', 'вроде бы', 'кажется мне', 'я могу ошибаться'],
-                weight: 1.1
-            },
-            'emotion': {
-                name: 'Эмоциональная заряженность',
-                description: 'Попытка отвлечь от сути',
-                words: ['ужасно', 'кошмар', 'невыносимо', 'отвратительно', 'прекрасно', 'замечательно', 'великолепно', 'потрясающе'],
-                weight: 0.9
-            },
-            'passive': {
-                name: 'Пассивные конструкции',
-                description: 'Уход от ответственности',
-                words: ['было сделано', 'было решено', 'произошло', 'случилось', 'получилось', 'вышло так', 'так вышло', 'само собой'],
-                weight: 1.0
-            },
-            'correction': {
-                name: 'Самоисправления',
-                description: 'Уточнения и поправки',
-                words: ['то есть', 'я имею в виду', 'вернее', 'точнее', 'нет, я хотел сказать', 'подождите', 'стоп', 'нет, не так'],
-                weight: 1.2
-            },
-            'temporal': {
-                name: 'Нечёткие временные указания',
-                description: 'Размытые временные маркеры',
-                words: ['как-то', 'однажды', 'в тот день', 'тогда', 'потом', 'затем', 'после этого', 'до этого', 'раньше', 'позже'],
-                weight: 0.7
-            }
-        };
+          if(mp3.size<1000){
+            setStatus('MP3 encoding failed');
+            mixChunks=[];mixStreamDest=null;mixRecorder=null;
+            return;
+          }
 
-        function analyzeText() {
-            const text = document.getElementById('textInput').value.trim();
-            
-            if (text.length < 10) {
-                showCustomToast('Введите текст длиной не менее 10 символов.', true);
+          if(isVK()){
+            try{
+              const vkUrl=URL.createObjectURL(mp3);
+              const vkRes=await window.vkBridge.send('VKWebAppDownloadFile',{
+                url:vkUrl,
+                filename:'dj_mix_'+Date.now()+'.mp3'
+              });
+              URL.revokeObjectURL(vkUrl);
+              if(vkRes && vkRes.result){
+                const d=Math.floor((Date.now()-recStartTime)/1000);
+                setStatus('✓ Saved • '+Math.floor(d/60)+':'+String(d%60).padStart(2,'0')+' • MP3');
+                mixChunks=[];mixStreamDest=null;mixRecorder=null;
                 return;
+              }
+            }catch(vkErr){
+              console.warn('VK download failed, using fallback',vkErr);
             }
+          }
 
-            const btn = document.getElementById('btnAnalyze');
-            btn.disabled = true;
-            btn.textContent = 'Анализируем...';
+          if(navigator.share && navigator.canShare){
+            const file=new File([mp3],'dj_mix_'+Date.now()+'.mp3',{type:'audio/mp3'});
+            if(navigator.canShare({files:[file]})){
+              try{
+                await navigator.share({files:[file]});
+                const d=Math.floor((Date.now()-recStartTime)/1000);
+                setStatus('✓ Saved • '+Math.floor(d/60)+':'+String(d%60).padStart(2,'0')+' • MP3');
+                mixChunks=[];mixStreamDest=null;mixRecorder=null;
+                return;
+              }catch(shareErr){
+                if(shareErr.name!=='AbortError') console.warn('Share failed',shareErr);
+              }
+            }
+          }
 
-            setTimeout(() => {
-                performAnalysis(text);
-                btn.disabled = false;
-                btn.textContent = 'Проверить на ложь';
-            }, 600);
+          const u=URL.createObjectURL(mp3);
+          const a=document.createElement('a');
+          a.href=u;
+          a.download='dj_mix_'+Date.now()+'.mp3';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(()=>URL.revokeObjectURL(u),5000);
+
+          const d=Math.floor((Date.now()-recStartTime)/1000);
+          setStatus('✓ Saved • '+Math.floor(d/60)+':'+String(d%60).padStart(2,'0')+' • MP3');
+
+        }catch(convErr){
+          console.error('Conversion error:',convErr);
+          try{
+            const ext=actualMime.includes('mp4')?'m4a':actualMime.includes('ogg')?'ogg':'webm';
+            const u=URL.createObjectURL(rawBlob);
+            const a=document.createElement('a');
+            a.href=u;a.download='dj_mix_'+Date.now()+'.'+ext;
+            document.body.appendChild(a);a.click();document.body.removeChild(a);
+            setTimeout(()=>URL.revokeObjectURL(u),5000);
+            setStatus('✓ Saved ('+ext+')');
+          }catch(dlErr){
+            setStatus('Export Error');
+          }
         }
 
-        function performAnalysis(text) {
-            const textLower = text.toLowerCase();
-            const words = text.split(/\s+/).filter(w => w.length > 0);
-            const wordCount = words.length;
+      }catch(e){
+        console.error('Export error:',e);
+        setStatus('Export Error: '+e.message);
+      }
+      mixChunks=[];mixStreamDest=null;mixRecorder=null;
+    };
 
-            let totalScore = 0;
-            let foundMarkers = [];
-            let categoriesFound = new Set();
+    try{mixRecorder.stop()}catch(e){
+      console.error('Stop error:',e);
+      setStatus('Export Error');
+      mixChunks=[];mixStreamDest=null;mixRecorder=null;
+    }
+    isRecording=false;
+  }
+}
 
-            for (const [category, data] of Object.entries(lieMarkers)) {
-                for (const marker of data.words) {
-                    const markerLower = marker.toLowerCase();
-                    const regex = new RegExp(`\\b${escapeRegex(markerLower)}\\b`, 'gi');
-                    const matches = textLower.match(regex);
-                    
-                    if (matches) {
-                        const count = matches.length;
-                        const score = count * data.weight;
-                        totalScore += score;
-                        categoriesFound.add(category);
+async function convertToMP3(ab){
+  const sr=ab.sampleRate,nc=ab.numberOfChannels,len=ab.length;
+  const enc=new lamejs.Mp3Encoder(nc>=2?2:1,sr,192);
+  const l=f32(ab.getChannelData(0)),r=nc>=2?f32(ab.getChannelData(1)):l;
+  const d=[];for(let i=0;i<len;i+=1152){const b=enc.encodeBuffer(l.subarray(i,i+1152),r.subarray(i,i+1152));if(b.length)d.push(b)}
+  const e=enc.flush();if(e.length)d.push(e);
+  return new Blob(d,{type:'audio/mp3'});
+}
+function f32(f){const i=new Int16Array(f.length);for(let x=0;x<f.length;x++){const s=Math.max(-1,Math.min(1,f[x]));i[x]=s<0?s*0x8000:s*0x7FFF}return i}
 
-                        foundMarkers.push({
-                            word: marker,
-                            category: data.name,
-                            description: data.description,
-                            count: count,
-                            score: score
-                        });
-                    }
-                }
-            }
+function detectBPM(buf){
+  const data=buf.getChannelData(0),sr=buf.sampleRate,tr=4000,step=Math.max(1,Math.floor(sr/tr));
+  const ds=[];for(let i=0;i<data.length;i+=step)ds.push(Math.abs(data[i]));
+  if(ds.length<100)return 0;
+  let mx=0;for(let i=0;i<ds.length;i++)if(ds[i]>mx)mx=ds[i];
+  if(mx<0.01)return 0;
+  const th=mx*0.35,mg=Math.floor(tr*0.2),xg=Math.floor(tr*2),pk=[];let lp=-mg;
+  for(let i=1;i<ds.length-1;i++){if(ds[i]>th&&ds[i]>=ds[i-1]&&ds[i]>=ds[i+1]&&i-lp>=mg){pk.push(i);lp=i}}
+  if(pk.length<3)return 0;
+  const iv=[];for(let i=1;i<pk.length;i++){const g=pk[i]-pk[i-1];if(g>=mg&&g<=xg)iv.push(g)}
+  if(iv.length<2)return 0;
+  iv.sort((a,b)=>a-b);const md=iv[Math.floor(iv.length/2)];
+  const fl=iv.filter(x=>x>=md*0.5&&x<=md*1.5);if(fl.length<2)return 0;
+  const ai=fl.reduce((a,b)=>a+b,0)/fl.length;
+  let bpm=60/(ai/tr);while(bpm<60&&bpm<360)bpm*=2;while(bpm>180&&bpm>30)bpm/=2;
+  return(bpm>=60&&bpm<=180)?bpm:0;
+}
 
-            const capsWords = text.match(/\b[A-ZА-ЯЁ]{4,}\b/g);
-            if (capsWords && capsWords.length > 2) {
-                totalScore += capsWords.length * 0.5;
-                foundMarkers.push({
-                    word: capsWords.join(', '),
-                    category: 'Агрессия/Эмоции',
-                    description: 'Использование Caps Lock',
-                    count: capsWords.length,
-                    score: capsWords.length * 0.5
-                });
-            }
+function findFirstPeak(buf){
+  const data=buf.getChannelData(0),sr=buf.sampleRate,tr=4000,step=Math.max(1,Math.floor(sr/tr));
+  let mx=0;for(let i=0;i<data.length;i+=step){const v=Math.abs(data[i]);if(v>mx)mx=v}
+  if(mx<0.01)return 0;
+  const th=mx*0.5,ss=Math.floor(tr*0.2);
+  for(let i=ss;i<data.length/step-1;i+=step){
+    const idx=i*step,p=Math.abs(data[idx-step]||0),c=Math.abs(data[idx]),n=Math.abs(data[idx+step]||0);
+    if(c>th&&c>=p&&c>=n)return idx;
+  }
+  return 0;
+}
 
-            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-            const avgSentenceLength = wordCount / Math.max(sentences.length, 1);
-            if (avgSentenceLength > 25) {
-                totalScore += 2;
-                foundMarkers.push({
-                    word: `Средняя длина: ${avgSentenceLength.toFixed(1)} слов`,
-                    category: 'Сложность',
-                    description: 'Запутанные предложения',
-                    count: 1,
-                    score: 2
-                });
-            }
-
-            const maxExpectedScore = wordCount * 0.3;
-            const normalizedScore = Math.min((totalScore / maxExpectedScore) * 100, 100);
-            const truthScore = Math.max(100 - normalizedScore, 0);
-
-            displayResults(truthScore, foundMarkers, wordCount, categoriesFound.size, text);
-        }
-
-        function escapeRegex(string) {
-            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
-
-        function displayResults(truthScore, markers, wordCount, categoriesCount, originalText) {
-            const resultsSection = document.getElementById('resultsSection');
-            resultsSection.style.display = 'block';
-
-            animateValue('verdictValue', 0, Math.round(truthScore), 800, '%');
-
-            const meterFill = document.getElementById('meterFill');
-            setTimeout(() => {
-                meterFill.style.width = truthScore + '%';
-                if (truthScore > 70) {
-                    meterFill.style.background = '#10B981';
-                } else if (truthScore > 40) {
-                    meterFill.style.background = '#F59E0B';
-                } else {
-                    meterFill.style.background = '#EF4444';
-                }
-            }, 50);
-
-            const verdictLabel = document.getElementById('verdictLabel');
-            if (truthScore > 75) {
-                verdictLabel.textContent = 'Высокая вероятность правды';
-                verdictLabel.style.background = 'rgba(16, 185, 129, 0.15)';
-                verdictLabel.style.color = '#10B981';
-            } else if (truthScore > 50) {
-                verdictLabel.textContent = 'Есть сомнения';
-                verdictLabel.style.background = 'rgba(245, 158, 11, 0.15)';
-                verdictLabel.style.color = '#F59E0B';
-            } else if (truthScore > 25) {
-                verdictLabel.textContent = 'Вероятна ложь';
-                verdictLabel.style.background = 'rgba(239, 68, 68, 0.15)';
-                verdictLabel.style.color = '#EF4444';
-            } else {
-                verdictLabel.textContent = 'Критический уровень лжи';
-                verdictLabel.style.background = 'rgba(239, 68, 68, 0.25)';
-                verdictLabel.style.color = '#EF4444';
-            }
-
-            document.getElementById('statMarkers').textContent = markers.length;
-            document.getElementById('statWords').textContent = wordCount;
-            const density = markers.length > 0 ? ((markers.length / wordCount) * 100).toFixed(1) : 0;
-            document.getElementById('statDensity').textContent = density + '%';
-            document.getElementById('statCategories').textContent = categoriesCount;
-
-            const markersList = document.getElementById('markersList');
-            if (markers.length === 0) {
-                markersList.innerHTML = '<div style="color:#7a7f8a; font-style:italic;">Явных маркеров лжи не обнаружено.</div>';
-            } else {
-                markersList.innerHTML = markers.map(m => `
-                    <div class="marker-item">
-                        <div class="marker-word">"${m.word}"</div>
-                        <div class="marker-meta">
-                            <span>${m.category}</span>
-                            <span>×${m.count}</span>
-                        </div>
-                        <div style="font-size:0.8em; color:#7a7f8a; margin-top:4px;">${m.description}</div>
-                    </div>
-                `).join('');
-            }
-
-            let highlightedText = escapeHtml(originalText);
-            markers.sort((a, b) => b.word.length - a.word.length);
-            
-            markers.forEach(m => {
-                const regex = new RegExp(`(${escapeRegex(m.word)})`, 'gi');
-                highlightedText = highlightedText.replace(regex, '<span class="highlight">$1</span>');
-            });
-            document.getElementById('highlightedText').innerHTML = highlightedText;
-
-            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-            // === ВЫЗОВ БАННЕРНОЙ РЕКЛАМЫ ПРИ ПОКАЗЕ РЕЗУЛЬТАТОВ ===
-            // Это лучший момент: пользователь вовлечен и читает результат
-            showBannerAd();
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function animateValue(id, start, end, duration, suffix = '') {
-            const obj = document.getElementById(id);
-            const range = end - start;
-            const startTime = performance.now();
-
-            function run(currentTime) {
-                const progress = Math.min((currentTime - startTime) / duration, 1);
-                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-                const value = Math.round(start + range * easeOutQuart);
-                obj.textContent = value + suffix;
-                if (progress < 1) {
-                    requestAnimationFrame(run);
-                }
-            }
-
-            requestAnimationFrame(run);
-        }
-
-        document.getElementById('textInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && e.ctrlKey) {
-                analyzeText();
-            }
-        });
-    </script>
+function setStatus(m){document.getElementById('status').textContent=m}
+setStatus('Ready • Load Tracks to Begin');
+</script>
 </body>
 </html>
