@@ -119,88 +119,152 @@ html,body{
 .status{text-align:center;font-size:9px;font-weight:500;color:var(--white-70);padding:4px 10px;background:rgba(15,15,15,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--white-08);border-radius:var(--radius-md);font-variant-numeric:tabular-nums;flex-shrink:0}
 input[type=file]{display:none}
 
-@media(max-width:899px) and (orientation:portrait){
-  .rotate-overlay{display:flex !important}
-  .console{display:none}
+/* ===== ОНБОРДИНГ ===== */
+.onboarding-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.95);
+  z-index:10000;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
 }
+.onboarding-overlay.hidden{display:none}
+.onboarding-content{
+  max-width:500px;width:100%;
+  background:rgba(20,20,20,.95);
+  backdrop-filter:blur(20px);
+  border:1px solid var(--white-15);
+  border-radius:var(--radius-lg);
+  padding:30px 24px;
+  max-height:90vh;
+  overflow-y:auto;
+}
+.onboarding-title{
+  font-size:24px;font-weight:700;
+  color:var(--white);
+  text-align:center;
+  margin-bottom:8px;
+  letter-spacing:.02em;
+}
+.onboarding-title span{color:var(--blue-bright)}
+.onboarding-subtitle{
+  font-size:14px;
+  color:var(--white-70);
+  text-align:center;
+  margin-bottom:24px;
+}
+.onboarding-steps{
+  display:flex;flex-direction:column;gap:16px;
+  margin-bottom:24px;
+}
+.onboarding-step{
+  display:flex;gap:12px;align-items:flex-start;
+  background:rgba(255,255,255,.04);
+  padding:12px;
+  border-radius:var(--radius-md);
+  border:1px solid var(--white-08);
+}
+.onboarding-step-icon{
+  font-size:28px;
+  flex-shrink:0;
+  width:40px;
+  text-align:center;
+}
+.onboarding-step-text{
+  flex:1;
+}
+.onboarding-step-title{
+  font-size:13px;font-weight:600;
+  color:var(--white);
+  margin-bottom:4px;
+}
+.onboarding-step-desc{
+  font-size:11px;
+  color:var(--white-70);
+  line-height:1.4;
+}
+.onboarding-btn{
+  width:100%;
+  padding:14px;
+  background:var(--blue);
+  border:none;
+  border-radius:var(--radius-md);
+  color:var(--white);
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .2s ease;
+  letter-spacing:.02em;
+}
+.onboarding-btn:hover{background:var(--blue-bright)}
+.onboarding-btn:active{transform:scale(.98)}
+
+/* ===== МОБИЛЬНАЯ ПОРТРЕТНАЯ — предупреждение ===== */
+body.mobile-portrait .rotate-overlay{display:flex !important}
+body.mobile-portrait .console{display:none}
 
 /* ===== МОБИЛЬНАЯ АЛЬБОМНАЯ ===== */
-@media(max-width:899px) and (orientation:landscape){
-  :root{
-    --fader-length:120px;
-    --turntable-size:108px;
-    --inv-height:48px;
-  }
-  .console{padding:4px;gap:4px}
-  .header{padding:3px 10px}
-  .logo{font-size:11px;left:10px}
-  .rec-btn{padding:3px 10px;font-size:9px;gap:4px}
-  .rec-dot{width:5px;height:5px}
-
-  .main{gap:4px}
-
-  /* EDGE EQ — сдвинуты к центру на 1 см (≈38px) */
-  .edge-eq{
-    display:flex;flex-direction:column;gap:4px;width:36px;flex-shrink:0;
-    align-items:center;padding:4px 2px;
-    background:rgba(15,15,15,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-    border:1px solid var(--white-08);border-radius:var(--radius-md);justify-content:center;
-    margin:0 19px; /* сдвиг от краёв экрана к центру на 19px с каждой стороны */
-  }
-  .edge-eq-row{display:flex;flex-direction:column;align-items:center;gap:2px}
-  .edge-eq .eq-slider{width:3px;height:50px;writing-mode:vertical-lr;direction:rtl}
-  .edge-eq .eq-slider::-webkit-slider-thumb{width:12px;height:12px}
-  .edge-eq .eq-slider::-moz-range-thumb{width:12px;height:12px;border:none}
-  .edge-eq .eq-label{font-size:5px;width:auto;margin-top:1px}
-  .edge-eq .eq-value{display:none}
-  .edge-eq .inv-btn{width:24px;height:36px;font-size:5px;border-radius:4px}
-
-  .deck .eq-panel{display:none}
-
-  .deck{flex:1;padding:6px;gap:6px;flex-direction:column;justify-content:center;align-items:center}
-  .deck-label{position:static;font-size:8px;padding:1px 8px;line-height:14px;align-self:center}
-  .turntable{width:var(--turntable-size);height:var(--turntable-size)}
-  .label{font-size:8px}
-  .spindle{width:6px;height:6px}
-  .tonearm{height:44px;width:2px;top:4px;right:4px}
-
-  .info-display{max-width:none;width:100%;padding:2px 6px}
-  .track-name{font-size:11px;max-width:none}
-  .bpm-display{font-size:17px;margin-top:0}
-  .time-display{padding:1px 6px;width:100%}
-  .time-text{font-size:11px}
-
-  /* Play ×1.3: 38×1.3≈50px, font-size 15×1.3≈20px */
-  .controls-row{gap:10px}
-  .play-btn{width:50px;height:50px;font-size:20px}
-  .loop-btn{width:34px;height:34px;font-size:13px}
-
-  /* MIXER */
-  .mixer{width:auto;flex:0 0 auto;min-width:auto;padding:6px;gap:4px;justify-content:center}
-  .mixer-title{display:none}
-  .swap-btn{
-    width:32px;height:32px;font-size:16px;align-self:center;
-    position:relative;top:-38px;margin-bottom:-38px;
-  }
-
-  .faders-row{
-    display:flex;flex-direction:row;
-    gap:38px;
-    align-items:center;justify-content:center;
-    border:none;padding:0;width:auto;
-  }
-  .fader-group{gap:2px}
-  .fader-label{font-size:6px}
-  .fader-value{font-size:7px}
-  .fader-slider{width:3px;height:var(--fader-length)}
-  .fader-slider::-webkit-slider-thumb{width:12px;height:12px}
-  .fader-slider::-moz-range-thumb{width:12px;height:12px;border:none}
-
-  .sync-btn{width:54px;height:54px;font-size:10px}
-  .sync-btn::before{top:3px;left:3px;right:3px;bottom:3px}
-  .vu-meter{height:3px}
-  .status{font-size:7px;padding:2px 6px}
+body.mobile-landscape .edge-eq{
+  display:flex;flex-direction:column;gap:4px;width:36px;flex-shrink:0;
+  align-items:center;padding:4px 2px;
+  background:rgba(15,15,15,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--white-08);border-radius:var(--radius-md);justify-content:center;
+  margin:0 19px;
 }
+body.mobile-landscape :root{
+  --fader-length:120px;
+  --turntable-size:108px;
+  --inv-height:48px;
+}
+body.mobile-landscape .console{padding:4px;gap:4px}
+body.mobile-landscape .header{padding:3px 10px}
+body.mobile-landscape .logo{font-size:11px;left:10px}
+body.mobile-landscape .rec-btn{padding:3px 10px;font-size:9px;gap:4px}
+body.mobile-landscape .rec-dot{width:5px;height:5px}
+body.mobile-landscape .main{gap:4px}
+body.mobile-landscape .edge-eq-row{display:flex;flex-direction:column;align-items:center;gap:2px}
+body.mobile-landscape .edge-eq .eq-slider{width:3px;height:50px;writing-mode:vertical-lr;direction:rtl}
+body.mobile-landscape .edge-eq .eq-slider::-webkit-slider-thumb{width:12px;height:12px}
+body.mobile-landscape .edge-eq .eq-slider::-moz-range-thumb{width:12px;height:12px;border:none}
+body.mobile-landscape .edge-eq .eq-label{font-size:5px;width:auto;margin-top:1px}
+body.mobile-landscape .edge-eq .eq-value{display:none}
+body.mobile-landscape .edge-eq .inv-btn{width:24px;height:36px;font-size:5px;border-radius:4px}
+body.mobile-landscape .deck .eq-panel{display:none}
+body.mobile-landscape .deck{flex:1;padding:6px;gap:6px;flex-direction:column;justify-content:center;align-items:center}
+body.mobile-landscape .deck-label{position:static;font-size:8px;padding:1px 8px;line-height:14px;align-self:center}
+body.mobile-landscape .turntable{width:var(--turntable-size);height:var(--turntable-size)}
+body.mobile-landscape .label{font-size:8px}
+body.mobile-landscape .spindle{width:6px;height:6px}
+body.mobile-landscape .tonearm{height:44px;width:2px;top:4px;right:4px}
+body.mobile-landscape .info-display{max-width:none;width:100%;padding:2px 6px}
+body.mobile-landscape .track-name{font-size:11px;max-width:none}
+body.mobile-landscape .bpm-display{font-size:17px;margin-top:0}
+body.mobile-landscape .time-display{padding:1px 6px;width:100%}
+body.mobile-landscape .time-text{font-size:11px}
+body.mobile-landscape .controls-row{gap:10px}
+body.mobile-landscape .play-btn{width:50px;height:50px;font-size:20px}
+body.mobile-landscape .loop-btn{width:34px;height:34px;font-size:13px}
+body.mobile-landscape .mixer{width:auto;flex:0 0 auto;min-width:auto;padding:6px;gap:4px;justify-content:center}
+body.mobile-landscape .mixer-title{display:none}
+body.mobile-landscape .swap-btn{
+  width:32px;height:32px;font-size:16px;align-self:center;
+  position:relative;top:-38px;margin-bottom:-38px;
+}
+body.mobile-landscape .faders-row{
+  display:flex;flex-direction:row;
+  gap:38px;
+  align-items:center;justify-content:center;
+  border:none;padding:0;width:auto;
+}
+body.mobile-landscape .fader-group{gap:2px}
+body.mobile-landscape .fader-label{font-size:6px}
+body.mobile-landscape .fader-value{font-size:7px}
+body.mobile-landscape .fader-slider{width:3px;height:var(--fader-length)}
+body.mobile-landscape .fader-slider::-webkit-slider-thumb{width:12px;height:12px}
+body.mobile-landscape .fader-slider::-moz-range-thumb{width:12px;height:12px;border:none}
+body.mobile-landscape .sync-btn{width:54px;height:54px;font-size:10px}
+body.mobile-landscape .sync-btn::before{top:3px;left:3px;right:3px;bottom:3px}
+body.mobile-landscape .vu-meter{height:3px}
+body.mobile-landscape .status{font-size:7px;padding:2px 6px}
 
 .rotate-overlay{
   display:none;position:fixed;top:0;left:0;right:0;bottom:0;
@@ -213,6 +277,58 @@ input[type=file]{display:none}
 </style>
 </head>
 <body>
+
+<!-- ОНБОРДИНГ -->
+<div class="onboarding-overlay" id="onboardingOverlay">
+  <div class="onboarding-content">
+    <div class="onboarding-title">DJ BOX <span>PRO</span></div>
+    <div class="onboarding-subtitle">Профессиональный DJ-микшер для создания музыки</div>
+    
+    <div class="onboarding-steps">
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon">🎵</div>
+        <div class="onboarding-step-text">
+          <div class="onboarding-step-title">Загрузите треки</div>
+          <div class="onboarding-step-desc">Нажмите на пластинку Deck A или Deck B, чтобы загрузить аудиофайл. Поддерживаются MP3, WAV, OGG.</div>
+        </div>
+      </div>
+      
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon">▶️</div>
+        <div class="onboarding-step-text">
+          <div class="onboarding-step-title">Управляйте воспроизведением</div>
+          <div class="onboarding-step-desc">Используйте кнопки Play/Pause и Loop для каждого дека. Настраивайте громкость фейдерами.</div>
+        </div>
+      </div>
+      
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon">🎛️</div>
+        <div class="onboarding-step-text">
+          <div class="onboarding-step-title">Настройте звук</div>
+          <div class="onboarding-step-desc">Регулируйте Bass, Treble, Delay и используйте INV для реверса трека.</div>
+        </div>
+      </div>
+      
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon">🔄</div>
+        <div class="onboarding-step-text">
+          <div class="onboarding-step-title">Синхронизация BPM</div>
+          <div class="onboarding-step-desc">Нажмите SYNC для автоматической синхронизации темпа двух треков. Используйте ⇄ для обмена треками между деками.</div>
+        </div>
+      </div>
+      
+      <div class="onboarding-step">
+        <div class="onboarding-step-icon">🎙️</div>
+        <div class="onboarding-step-text">
+          <div class="onboarding-step-title">Запись микса</div>
+          <div class="onboarding-step-desc">Нажмите REC MIX для записи вашего микса в формате MP3.</div>
+        </div>
+      </div>
+    </div>
+    
+    <button class="onboarding-btn" onclick="closeOnboarding()">Начать</button>
+  </div>
+</div>
 
 <div class="rotate-overlay" id="rotateOverlay">
   <div class="rotate-icon">📱</div>
@@ -377,6 +493,42 @@ function isVK(){return window.vkBridge&&typeof window.vkBridge.send==='function'
 if(isVK()){window.vkBridge.send('VKWebAppInit').catch(()=>{})}
 function showInterstitialAd(){if(!isVK())return;window.vkBridge.send('VKWebAppShowNativeAds',{ad_format:'interstitial'}).catch(()=>{})}
 
+// ===== ОНБОРДИНГ =====
+function checkOnboarding(){
+  const onboarded=localStorage.getItem('djbox_onboarded');
+  if(!onboarded){
+    document.getElementById('onboardingOverlay').classList.remove('hidden');
+  }else{
+    document.getElementById('onboardingOverlay').classList.add('hidden');
+  }
+}
+
+function closeOnboarding(){
+  localStorage.setItem('djbox_onboarded','true');
+  document.getElementById('onboardingOverlay').classList.add('hidden');
+}
+
+// ===== ОПРЕДЕЛЕНИЕ ОРИЕНТАЦИИ =====
+function updateOrientation(){
+  const isMobile=window.innerWidth<=899;
+  const isLandscape=window.innerWidth>window.innerHeight;
+  
+  document.body.classList.remove('mobile-portrait','mobile-landscape');
+  
+  if(isMobile){
+    if(isLandscape){
+      document.body.classList.add('mobile-landscape');
+    }else{
+      document.body.classList.add('mobile-portrait');
+    }
+  }
+}
+
+window.addEventListener('resize',updateOrientation);
+window.addEventListener('orientationchange',()=>{
+  setTimeout(updateOrientation,100);
+});
+
 function initAudio(){
   if(!audioCtx){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return false}
     masterGain=audioCtx.createGain();masterGain.gain.value=0.8;
@@ -453,8 +605,23 @@ function detectBPM(buf){const data=buf.getChannelData(0),sr=buf.sampleRate,tr=40
 function findFirstPeak(buf){const data=buf.getChannelData(0),sr=buf.sampleRate,tr=4000,step=Math.max(1,Math.floor(sr/tr));let mx=0;for(let i=0;i<data.length;i+=step){const v=Math.abs(data[i]);if(v>mx)mx=v}if(mx<0.01)return 0;const th=mx*0.5,ss=Math.floor(tr*0.2);for(let i=ss;i<data.length/step-1;i+=step){const idx=i*step,p=Math.abs(data[idx-step]||0),c=Math.abs(data[idx]),n=Math.abs(data[idx+step]||0);if(c>th&&c>=p&&c>=n)return idx}return 0}
 
 function setStatus(m){document.getElementById('status').textContent=m}
-window.addEventListener('DOMContentLoaded',()=>{setStatus('Ready • Load Tracks to Begin');if(screen.orientation&&screen.orientation.lock){screen.orientation.lock('landscape').catch(()=>{})}});
-document.addEventListener('click',function lockOrientation(){if(screen.orientation&&screen.orientation.lock){screen.orientation.lock('landscape').catch(()=>{})}document.removeEventListener('click',lockOrientation)},{once:true});
+
+// Инициализация
+window.addEventListener('DOMContentLoaded',()=>{
+  checkOnboarding();
+  updateOrientation();
+  setStatus('Ready • Load Tracks to Begin');
+  if(screen.orientation&&screen.orientation.lock){
+    screen.orientation.lock('landscape').catch(()=>{});
+  }
+});
+
+document.addEventListener('click',function lockOrientation(){
+  if(screen.orientation&&screen.orientation.lock){
+    screen.orientation.lock('landscape').catch(()=>{});
+  }
+  document.removeEventListener('click',lockOrientation);
+},{once:true});
 </script>
 </body>
 </html>
