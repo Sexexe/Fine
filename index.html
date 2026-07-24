@@ -138,67 +138,19 @@ input[type=file]{display:none}
   max-height:90vh;
   overflow-y:auto;
 }
-.onboarding-title{
-  font-size:24px;font-weight:700;
-  color:var(--white);
-  text-align:center;
-  margin-bottom:8px;
-  letter-spacing:.02em;
-}
+.onboarding-title{font-size:24px;font-weight:700;color:var(--white);text-align:center;margin-bottom:8px;letter-spacing:.02em}
 .onboarding-title span{color:var(--blue-bright)}
-.onboarding-subtitle{
-  font-size:14px;
-  color:var(--white-70);
-  text-align:center;
-  margin-bottom:24px;
-}
-.onboarding-steps{
-  display:flex;flex-direction:column;gap:16px;
-  margin-bottom:24px;
-}
-.onboarding-step{
-  display:flex;gap:12px;align-items:flex-start;
-  background:rgba(255,255,255,.04);
-  padding:12px;
-  border-radius:var(--radius-md);
-  border:1px solid var(--white-08);
-}
-.onboarding-step-icon{
-  font-size:28px;
-  flex-shrink:0;
-  width:40px;
-  text-align:center;
-}
-.onboarding-step-text{
-  flex:1;
-}
-.onboarding-step-title{
-  font-size:13px;font-weight:600;
-  color:var(--white);
-  margin-bottom:4px;
-}
-.onboarding-step-desc{
-  font-size:11px;
-  color:var(--white-70);
-  line-height:1.4;
-}
-.onboarding-btn{
-  width:100%;
-  padding:14px;
-  background:var(--blue);
-  border:none;
-  border-radius:var(--radius-md);
-  color:var(--white);
-  font-size:14px;
-  font-weight:600;
-  cursor:pointer;
-  transition:all .2s ease;
-  letter-spacing:.02em;
-}
+.onboarding-subtitle{font-size:14px;color:var(--white-70);text-align:center;margin-bottom:24px}
+.onboarding-steps{display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
+.onboarding-step{display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.04);padding:12px;border-radius:var(--radius-md);border:1px solid var(--white-08)}
+.onboarding-step-icon{font-size:28px;flex-shrink:0;width:40px;text-align:center}
+.onboarding-step-text{flex:1}
+.onboarding-step-title{font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px}
+.onboarding-step-desc{font-size:11px;color:var(--white-70);line-height:1.4}
+.onboarding-btn{width:100%;padding:14px;background:var(--blue);border:none;border-radius:var(--radius-md);color:var(--white);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s ease;letter-spacing:.02em}
 .onboarding-btn:hover{background:var(--blue-bright)}
 .onboarding-btn:active{transform:scale(.98)}
 
-/* ===== МОБИЛЬНАЯ ПОРТРЕТНАЯ — предупреждение ===== */
 body.mobile-portrait .rotate-overlay{display:flex !important}
 body.mobile-portrait .console{display:none}
 
@@ -208,7 +160,7 @@ body.mobile-landscape .edge-eq{
   align-items:center;padding:4px 2px;
   background:rgba(15,15,15,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border:1px solid var(--white-08);border-radius:var(--radius-md);justify-content:center;
-  margin:0 19px;
+  margin:0 24px;
 }
 body.mobile-landscape :root{
   --fader-length:120px;
@@ -278,12 +230,10 @@ body.mobile-landscape .status{font-size:7px;padding:2px 6px}
 </head>
 <body>
 
-<!-- ОНБОРДИНГ -->
 <div class="onboarding-overlay" id="onboardingOverlay">
   <div class="onboarding-content">
     <div class="onboarding-title">DJ BOX <span>PRO</span></div>
     <div class="onboarding-subtitle">Профессиональный DJ-микшер для создания музыки</div>
-    
     <div class="onboarding-steps">
       <div class="onboarding-step">
         <div class="onboarding-step-icon">🎵</div>
@@ -292,7 +242,6 @@ body.mobile-landscape .status{font-size:7px;padding:2px 6px}
           <div class="onboarding-step-desc">Нажмите на пластинку Deck A или Deck B, чтобы загрузить аудиофайл. Поддерживаются MP3, WAV, OGG.</div>
         </div>
       </div>
-      
       <div class="onboarding-step">
         <div class="onboarding-step-icon">▶️</div>
         <div class="onboarding-step-text">
@@ -300,7 +249,6 @@ body.mobile-landscape .status{font-size:7px;padding:2px 6px}
           <div class="onboarding-step-desc">Используйте кнопки Play/Pause и Loop для каждого дека. Настраивайте громкость фейдерами.</div>
         </div>
       </div>
-      
       <div class="onboarding-step">
         <div class="onboarding-step-icon">🎛️</div>
         <div class="onboarding-step-text">
@@ -308,7 +256,6 @@ body.mobile-landscape .status{font-size:7px;padding:2px 6px}
           <div class="onboarding-step-desc">Регулируйте Bass, Treble, Delay и используйте INV для реверса трека.</div>
         </div>
       </div>
-      
       <div class="onboarding-step">
         <div class="onboarding-step-icon">🔄</div>
         <div class="onboarding-step-text">
@@ -316,7 +263,6 @@ body.mobile-landscape .status{font-size:7px;padding:2px 6px}
           <div class="onboarding-step-desc">Нажмите SYNC для автоматической синхронизации темпа двух треков. Используйте ⇄ для обмена треками между деками.</div>
         </div>
       </div>
-      
       <div class="onboarding-step">
         <div class="onboarding-step-icon">🎙️</div>
         <div class="onboarding-step-text">
@@ -325,7 +271,6 @@ body.mobile-landscape .status{font-size:7px;padding:2px 6px}
         </div>
       </div>
     </div>
-    
     <button class="onboarding-btn" onclick="closeOnboarding()">Начать</button>
   </div>
 </div>
@@ -345,17 +290,18 @@ body.mobile-landscape .status{font-size:7px;padding:2px 6px}
   </div>
 
   <div class="main">
+    <!-- EDGE EQ левый -->
     <div class="edge-eq">
       <div class="edge-eq-row">
-        <input type="range" class="eq-slider" id="bass1e" min="-24" max="24" value="0" step="1" oninput="updateEQ(1)">
+        <input type="range" class="eq-slider" id="bass1e" min="-24" max="24" value="0" step="1" oninput="syncFromEdge(1,'bass',this.value)">
         <div class="eq-label">Bass</div>
       </div>
       <div class="edge-eq-row">
-        <input type="range" class="eq-slider" id="trbl1e" min="-24" max="24" value="0" step="1" oninput="updateEQ(1)">
+        <input type="range" class="eq-slider" id="trbl1e" min="-24" max="24" value="0" step="1" oninput="syncFromEdge(1,'trbl',this.value)">
         <div class="eq-label">Trbl</div>
       </div>
       <div class="edge-eq-row">
-        <input type="range" class="eq-slider" id="delay1e" min="0" max="1000" value="0" step="10" oninput="updateEQ(1)">
+        <input type="range" class="eq-slider" id="delay1e" min="0" max="1000" value="0" step="10" oninput="syncFromEdge(1,'delay',this.value)">
         <div class="eq-label">Dly</div>
       </div>
       <button class="inv-btn" id="invert1e" onclick="toggleInvert(1)">INV</button>
@@ -460,17 +406,18 @@ body.mobile-landscape .status{font-size:7px;padding:2px 6px}
       <input type="file" id="file2" accept="audio/*" onchange="loadTrack(2,this)">
     </div>
 
+    <!-- EDGE EQ правый -->
     <div class="edge-eq">
       <div class="edge-eq-row">
-        <input type="range" class="eq-slider" id="bass2e" min="-24" max="24" value="0" step="1" oninput="updateEQ(2)">
+        <input type="range" class="eq-slider" id="bass2e" min="-24" max="24" value="0" step="1" oninput="syncFromEdge(2,'bass',this.value)">
         <div class="eq-label">Bass</div>
       </div>
       <div class="edge-eq-row">
-        <input type="range" class="eq-slider" id="trbl2e" min="-24" max="24" value="0" step="1" oninput="updateEQ(2)">
+        <input type="range" class="eq-slider" id="trbl2e" min="-24" max="24" value="0" step="1" oninput="syncFromEdge(2,'trbl',this.value)">
         <div class="eq-label">Trbl</div>
       </div>
       <div class="edge-eq-row">
-        <input type="range" class="eq-slider" id="delay2e" min="0" max="1000" value="0" step="10" oninput="updateEQ(2)">
+        <input type="range" class="eq-slider" id="delay2e" min="0" max="1000" value="0" step="10" oninput="syncFromEdge(2,'delay',this.value)">
         <div class="eq-label">Dly</div>
       </div>
       <button class="inv-btn" id="invert2e" onclick="toggleInvert(2)">INV</button>
@@ -488,46 +435,32 @@ const decks={
   2:{buffer:null,reversedBuffer:null,source:null,bassFilter:null,trebleFilter:null,invertGain:null,delayNode:null,delayFb:null,delayWet:null,delayDry:null,channelGain:null,bpm:0,peakOffset:0,playing:false,loop:false,startTime:0,pauseOffset:0,inverted:false,chainBuilt:false}
 };
 let isRecording=false,mixRecorder=null,mixStreamDest=null,mixChunks=[],recStartTime=0,recTimer=null;
+let _syncingEQ=false;
 
 function isVK(){return window.vkBridge&&typeof window.vkBridge.send==='function'}
 if(isVK()){window.vkBridge.send('VKWebAppInit').catch(()=>{})}
 function showInterstitialAd(){if(!isVK())return;window.vkBridge.send('VKWebAppShowNativeAds',{ad_format:'interstitial'}).catch(()=>{})}
 
-// ===== ОНБОРДИНГ =====
 function checkOnboarding(){
   const onboarded=localStorage.getItem('djbox_onboarded');
-  if(!onboarded){
-    document.getElementById('onboardingOverlay').classList.remove('hidden');
-  }else{
-    document.getElementById('onboardingOverlay').classList.add('hidden');
-  }
+  if(!onboarded){document.getElementById('onboardingOverlay').classList.remove('hidden')}
+  else{document.getElementById('onboardingOverlay').classList.add('hidden')}
 }
-
 function closeOnboarding(){
   localStorage.setItem('djbox_onboarded','true');
   document.getElementById('onboardingOverlay').classList.add('hidden');
 }
 
-// ===== ОПРЕДЕЛЕНИЕ ОРИЕНТАЦИИ =====
 function updateOrientation(){
   const isMobile=window.innerWidth<=899;
   const isLandscape=window.innerWidth>window.innerHeight;
-  
   document.body.classList.remove('mobile-portrait','mobile-landscape');
-  
   if(isMobile){
-    if(isLandscape){
-      document.body.classList.add('mobile-landscape');
-    }else{
-      document.body.classList.add('mobile-portrait');
-    }
+    document.body.classList.add(isLandscape?'mobile-landscape':'mobile-portrait');
   }
 }
-
 window.addEventListener('resize',updateOrientation);
-window.addEventListener('orientationchange',()=>{
-  setTimeout(updateOrientation,100);
-});
+window.addEventListener('orientationchange',()=>{setTimeout(updateOrientation,100)});
 
 function initAudio(){
   if(!audioCtx){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return false}
@@ -570,6 +503,15 @@ function swapDecks(){const d1=decks[1],d2=decks[2];if(!d1.buffer&&!d2.buffer){se
 
 async function syncDecks(){if(!decks[1].buffer||!decks[2].buffer){setStatus('Load Both Decks');return}const btn=document.getElementById('syncBtn');btn.classList.add('syncing');setStatus('Syncing…');decks[1].bpm=detectBPM(decks[1].buffer);decks[2].bpm=detectBPM(decks[2].buffer);decks[1].peakOffset=findFirstPeak(decks[1].buffer);decks[2].peakOffset=findFirstPeak(decks[2].buffer);document.getElementById('bpm1').textContent=decks[1].bpm>0?decks[1].bpm.toFixed(1):'---.-';document.getElementById('bpm2').textContent=decks[2].bpm>0?decks[2].bpm.toFixed(1):'---.-';if(!decks[1].bpm||!decks[2].bpm){setStatus('BPM Failed');btn.classList.remove('syncing');return}const r=decks[1].bpm/decks[2].bpm;const p1t=decks[1].peakOffset/decks[1].buffer.sampleRate;const p2t=decks[2].peakOffset/decks[2].buffer.sampleRate;const ph=p1t-p2t/r;if(decks[2].source)decks[2].source.playbackRate.value=r;if(decks[2].playing&&decks[1].playing){decks[2].pauseOffset=Math.max(0,audioCtx.currentTime-decks[2].startTime+ph);startSource(2,decks[2].pauseOffset);if(decks[2].source)decks[2].source.playbackRate.value=r}else if(decks[2].playing){decks[2].pauseOffset=Math.max(0,decks[2].pauseOffset+ph)}setTimeout(()=>{btn.classList.remove('syncing');setStatus('✓ Synced • '+decks[1].bpm.toFixed(1)+' = '+decks[2].bpm.toFixed(1)+' BPM')},800)}
 
+// Функция синхронизации от edge слайдера к основному
+function syncFromEdge(n, param, value) {
+  const mainSlider = document.getElementById(param + n);
+  if (mainSlider) {
+    mainSlider.value = value;
+  }
+  updateEQ(n);
+}
+
 function updateEQ(n){
   const d=decks[n];if(!d.chainBuilt)return;
   const b=parseFloat(document.getElementById('bass'+n).value);
@@ -580,9 +522,13 @@ function updateEQ(n){
   document.getElementById('bassVal'+n).textContent=b>0?'+'+b:b;
   document.getElementById('trblVal'+n).textContent=t>0?'+'+t:t;
   document.getElementById('delayVal'+n).textContent=dl;
-  const be=document.getElementById('bass'+n+'e');if(be)be.value=b;
-  const te=document.getElementById('trbl'+n+'e');if(te)te.value=t;
-  const de=document.getElementById('delay'+n+'e');if(de)de.value=dl;
+  // Синхронизируем edge слайдеры без рекурсии
+  const be=document.getElementById('bass'+n+'e');
+  if(be && Math.abs(parseFloat(be.value)-b)>0.01) be.value=b;
+  const te=document.getElementById('trbl'+n+'e');
+  if(te && Math.abs(parseFloat(te.value)-t)>0.01) te.value=t;
+  const de=document.getElementById('delay'+n+'e');
+  if(de && Math.abs(parseFloat(de.value)-dl)>0.5) de.value=dl;
 }
 
 function toggleInvert(n){
@@ -606,20 +552,14 @@ function findFirstPeak(buf){const data=buf.getChannelData(0),sr=buf.sampleRate,t
 
 function setStatus(m){document.getElementById('status').textContent=m}
 
-// Инициализация
 window.addEventListener('DOMContentLoaded',()=>{
   checkOnboarding();
   updateOrientation();
   setStatus('Ready • Load Tracks to Begin');
-  if(screen.orientation&&screen.orientation.lock){
-    screen.orientation.lock('landscape').catch(()=>{});
-  }
+  if(screen.orientation&&screen.orientation.lock){screen.orientation.lock('landscape').catch(()=>{})}
 });
-
 document.addEventListener('click',function lockOrientation(){
-  if(screen.orientation&&screen.orientation.lock){
-    screen.orientation.lock('landscape').catch(()=>{});
-  }
+  if(screen.orientation&&screen.orientation.lock){screen.orientation.lock('landscape').catch(()=>{})}
   document.removeEventListener('click',lockOrientation);
 },{once:true});
 </script>
