@@ -175,15 +175,15 @@ body.mobile-landscape .status{font-size:7px;padding:2px 6px}
 <div class="onboarding-overlay" id="onboardingOverlay">
   <div class="onboarding-content">
     <div class="onboarding-title">DJ BOX <span>PRO</span></div>
-    <div class="onboarding-subtitle">Профессиональный DJ-микшер для создания музыки</div>
+    <div class="onboarding-subtitle">Профессиональный DJ-микшер</div>
     <div class="onboarding-steps">
-      <div class="onboarding-step"><div class="onboarding-step-icon">🎵</div><div class="onboarding-step-text"><div class="onboarding-step-title">Загрузите треки</div><div class="onboarding-step-desc">Нажмите на пластинку Deck A или Deck B, чтобы загрузить аудиофайл.</div></div></div>
-      <div class="onboarding-step"><div class="onboarding-step-icon">▶️</div><div class="onboarding-step-text"><div class="onboarding-step-title">Управляйте воспроизведением</div><div class="onboarding-step-desc">Кнопка Play/Pause и Loop для каждого дека. Фейдеры громкости.</div></div></div>
-      <div class="onboarding-step"><div class="onboarding-step-icon">🎛️</div><div class="onboarding-step-text"><div class="onboarding-step-title">Настройте звук</div><div class="onboarding-step-desc">Bass, Treble, Delay и INV для реверса трека.</div></div></div>
-      <div class="onboarding-step"><div class="onboarding-step-icon">🔄</div><div class="onboarding-step-text"><div class="onboarding-step-title">Синхронизация BPM</div><div class="onboarding-step-desc">SYNC — авто-синхронизация темпа. ⇄ — обмен треками.</div></div></div>
-      <div class="onboarding-step"><div class="onboarding-step-icon">🎙️</div><div class="onboarding-step-text"><div class="onboarding-step-title">Запись микса</div><div class="onboarding-step-desc">REC MIX — запись микса в MP3.</div></div></div>
+      <div class="onboarding-step"><div class="onboarding-step-icon"></div><div class="onboarding-step-text"><div class="onboarding-step-title">1. Загрузка треков</div><div class="onboarding-step-desc">Нажмите на пластинку <b>Deck A</b> или <b>Deck B</b>. Выберите MP3/WAV/OGG. BPM определится автоматически.</div></div></div>
+      <div class="onboarding-step"><div class="onboarding-step-icon">▶️</div><div class="onboarding-step-text"><div class="onboarding-step-title">2. Воспроизведение</div><div class="onboarding-step-desc"><b>Play/Pause</b> — запуск/остановка. <b>Loop</b> — зацикливание. Фейдеры — громкость канала.</div></div></div>
+      <div class="onboarding-step"><div class="onboarding-step-icon">🎛️</div><div class="onboarding-step-text"><div class="onboarding-step-title">3. Эквалайзер</div><div class="onboarding-step-desc"><b>Trbl</b> — высокие частоты. <b>Bass</b> — низкие. <b>Delay</b> — эхо. <b>INV</b> — реверс трека.</div></div></div>
+      <div class="onboarding-step"><div class="onboarding-step-icon">🔄</div><div class="onboarding-step-text"><div class="onboarding-step-title">4. Синхронизация</div><div class="onboarding-step-desc"><b>SYNC</b> — подстраивает BPM второго трека под первый. <b>⇄</b> — обмен треками между деками.</div></div></div>
+      <div class="onboarding-step"><div class="onboarding-step-icon">🎙️</div><div class="onboarding-step-text"><div class="onboarding-step-title">5. Запись микса</div><div class="onboarding-step-desc"><b>REC MIX</b> — запись микса в MP3. Файл сохранится на устройстве.</div></div></div>
     </div>
-    <button class="onboarding-btn" onclick="closeOnboarding()">Начать</button>
+    <button class="onboarding-btn" onclick="closeOnboarding()">Начать микширование</button>
   </div>
 </div>
 
@@ -267,9 +267,55 @@ const decks={
 };
 let isRecording=false,mixRecorder=null,mixStreamDest=null,mixChunks=[],recStartTime=0,recTimer=null;
 
-function isVK(){return window.vkBridge&&typeof window.vkBridge.send==='function'}
-if(isVK()){window.vkBridge.send('VKWebAppInit').catch(()=>{})}
-function showInterstitialAd(){if(!isVK())return;window.vkBridge.send('VKWebAppShowNativeAds',{ad_format:'interstitial'}).catch(()=>{})}
+// ===== VK BRIDGE =====
+let vkReady=false;
+let adReady=false;
+let adCheckTimer=null;
+
+function initVK(){
+  if(!window.vkBridge)return;
+  window.vkBridge.send('VKWebAppInit').then(()=>{
+    vkReady=true;
+    checkAdReady();
+  }).catch(()=>{});
+}
+
+function checkAdReady(){
+  if(!window.vkBridge)return;
+  window.vkBridge.send('VKWebAppCheckNativeAds',{ad_format:'interstitial'}).then(d=>{
+    adReady=d.result||false;
+  }).catch(()=>{adReady=false});
+}
+
+function showInterstitialAd(callback){
+  if(!window.vkBridge){if(callback)callback();return}
+  if(!vkReady){if(callback)callback();return}
+  
+  // Проверяем готовность рекламы
+  window.vkBridge.send('VKWebAppCheckNativeAds',{ad_format:'interstitial'}).then(d=>{
+    if(d.result){
+      window.vkBridge.send('VKWebAppShowNativeAds',{ad_format:'interstitial'}).then(()=>{
+        if(callback)callback();
+      }).catch(()=>{if(callback)callback()});
+    } else {
+      // Реклама не готова — пробуем через 3 секунды
+      setTimeout(()=>{
+        window.vkBridge.send('VKWebAppShowNativeAds',{ad_format:'interstitial'}).then(()=>{
+          if(callback)callback();
+        }).catch(()=>{if(callback)callback()});
+      },3000);
+    }
+  }).catch(()=>{if(callback)callback()});
+}
+
+// Таймер рекламы каждые 15 минут
+let adIntervalId=null;
+function startAdTimer(){
+  if(adIntervalId)clearInterval(adIntervalId);
+  adIntervalId=setInterval(()=>{
+    showInterstitialAd();
+  },15*60*1000); // 15 минут
+}
 
 function checkOnboarding(){
   const onboarded=localStorage.getItem('djbox_onboarded');
@@ -280,7 +326,7 @@ function closeOnboarding(){localStorage.setItem('djbox_onboarded','true');docume
 
 function updateOrientation(){
   const isMobile=window.innerWidth<=899;
-  const isLandscape=window.innerWidth>window.innerHeight;
+  const isLandscape=window.matchMedia('(orientation: landscape)').matches;
   document.body.classList.remove('mobile-portrait','mobile-landscape');
   if(isMobile){document.body.classList.add(isLandscape?'mobile-landscape':'mobile-portrait')}
 }
@@ -303,7 +349,6 @@ function reverseBuffer(b){const r=audioCtx.createBuffer(b.numberOfChannels,b.len
 
 function buildAudioChain(n){
   const d=decks[n];
-  // Отключаем старые ноды если есть
   if(d.source){try{d.source.disconnect()}catch(e){}}
   if(d.bassFilter){try{d.bassFilter.disconnect()}catch(e){}}
   if(d.trebleFilter){try{d.trebleFilter.disconnect()}catch(e){}}
@@ -324,11 +369,9 @@ function buildAudioChain(n){
     d.delayDry=audioCtx.createGain();d.delayDry.gain.value=1;
     d.channelGain=audioCtx.createGain();
     
-    // Устанавливаем громкость из фейдера
     const volSlider=document.getElementById('vol'+n);
     d.channelGain.gain.value=volSlider?(parseFloat(volSlider.value)/100):0.8;
     
-    // Устанавливаем EQ значения из слайдеров
     const bassSlider=document.getElementById('bass'+n);
     const trblSlider=document.getElementById('trbl'+n);
     const delaySlider=document.getElementById('delay'+n);
@@ -360,7 +403,12 @@ async function loadTrack(n,input){
     const pb=document.getElementById('play'+n);pb.disabled=false;pb.textContent='▶';pb.classList.remove('active');
     document.getElementById('loop'+n).disabled=false;
     setStatus('Deck '+(n===1?'A':'B')+' Loaded'+(d.bpm>0?' • '+d.bpm.toFixed(1)+' BPM':''));
-    trackLoadCount++;if(trackLoadCount>0&&trackLoadCount%2===0){showInterstitialAd()}
+    
+    // Счётчик загрузок — реклама при каждом втором
+    trackLoadCount++;
+    if(trackLoadCount%2===0){
+      showInterstitialAd();
+    }
   }catch(e){setStatus('Load Error')}
 }
 
@@ -422,7 +470,6 @@ function swapDecks(){
   const ie1=document.getElementById('invert1e');const ie2=document.getElementById('invert2e');
   if(ie1){d1.inverted?ie1.classList.add('active'):ie1.classList.remove('active')}
   if(ie2){d2.inverted?ie2.classList.add('active'):ie2.classList.remove('active')}
-  // Перестраиваем цепи после swap
   if(d1.buffer)buildAudioChain(1);
   if(d2.buffer)buildAudioChain(2);
   if(wp1&&d2.buffer)startSource(2,Math.min(p1,d2.buffer.duration));else if(d2.buffer)d2.pauseOffset=Math.min(p1,d2.buffer.duration);
@@ -484,11 +531,16 @@ async function toggleRecording(){
   if(!initAudio())return;
   const btn=document.getElementById('recBtn'),lb=document.getElementById('recLabel');
   if(!isRecording){
-    try{mixStreamDest=audioCtx.createMediaStreamDestination();masterGain.connect(mixStreamDest);mixChunks=[];let mimeType='';const mimeList=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus','audio/ogg',''];for(const mt of mimeList){if(!mt||(typeof MediaRecorder!=='undefined'&&MediaRecorder.isTypeSupported(mt))){mimeType=mt;break}}const recorderOptions={};if(mimeType)recorderOptions.mimeType=mimeType;mixRecorder=new MediaRecorder(mixStreamDest.stream,recorderOptions);mixRecorder.ondataavailable=e=>{if(e.data&&e.data.size>0)mixChunks.push(e.data)};mixRecorder.start(250);isRecording=true;recStartTime=Date.now();btn.classList.add('recording');lb.textContent='REC • 00:00';recTimer=setInterval(()=>{const e=Math.floor((Date.now()-recStartTime)/1000);lb.textContent='REC • '+String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0')},1000);setStatus('● Recording…')}catch(e){setStatus('Rec Error: '+e.message)}
+    // Показываем рекламу при начале записи микса
+    showInterstitialAd(()=>{
+      // После рекламы (или сразу если рекламы нет) начинаем запись
+      try{
+        mixStreamDest=audioCtx.createMediaStreamDestination();masterGain.connect(mixStreamDest);mixChunks=[];let mimeType='';const mimeList=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus','audio/ogg',''];for(const mt of mimeList){if(!mt||(typeof MediaRecorder!=='undefined'&&MediaRecorder.isTypeSupported(mt))){mimeType=mt;break}}const recorderOptions={};if(mimeType)recorderOptions.mimeType=mimeType;mixRecorder=new MediaRecorder(mixStreamDest.stream,recorderOptions);mixRecorder.ondataavailable=e=>{if(e.data&&e.data.size>0)mixChunks.push(e.data)};mixRecorder.start(250);isRecording=true;recStartTime=Date.now();btn.classList.add('recording');lb.textContent='REC • 00:00';recTimer=setInterval(()=>{const e=Math.floor((Date.now()-recStartTime)/1000);lb.textContent='REC • '+String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0')},1000);setStatus('● Recording…')}catch(e){setStatus('Rec Error: '+e.message)}
+    });
   }else{
     clearInterval(recTimer);btn.classList.remove('recording');lb.textContent='REC MIX';setStatus('Processing…');
     mixRecorder.onstop=async()=>{
-      try{if(mixStreamDest){try{masterGain.disconnect(mixStreamDest)}catch(e){}}if(!mixChunks.length){setStatus('No Audio');return}const actualMime=mixRecorder.mimeType||'audio/webm';const rawBlob=new Blob(mixChunks,{type:actualMime});if(rawBlob.size<1000){setStatus('Too short');mixChunks=[];mixStreamDest=null;mixRecorder=null;return}setStatus('Processing MP3…');try{const arr=await rawBlob.arrayBuffer();const ab=await audioCtx.decodeAudioData(arr);const mp3=await convertToMP3(ab);if(mp3.size<1000){setStatus('MP3 failed');mixChunks=[];mixStreamDest=null;mixRecorder=null;return}if(isVK()){try{const vkUrl=URL.createObjectURL(mp3);const vkRes=await window.vkBridge.send('VKWebAppDownloadFile',{url:vkUrl,filename:'dj_mix_'+Date.now()+'.mp3'});URL.revokeObjectURL(vkUrl);if(vkRes&&vkRes.result){const d=Math.floor((Date.now()-recStartTime)/1000);setStatus('✓ Saved • '+Math.floor(d/60)+':'+String(d%60).padStart(2,'0')+' • MP3');mixChunks=[];mixStreamDest=null;mixRecorder=null;return}}catch(e){}}if(navigator.share&&navigator.canShare){const file=new File([mp3],'dj_mix_'+Date.now()+'.mp3',{type:'audio/mp3'});if(navigator.canShare({files:[file]})){try{await navigator.share({files:[file]});const d=Math.floor((Date.now()-recStartTime)/1000);setStatus('✓ Saved');mixChunks=[];mixStreamDest=null;mixRecorder=null;return}catch(e){}}}const u=URL.createObjectURL(mp3);const a=document.createElement('a');a.href=u;a.download='dj_mix_'+Date.now()+'.mp3';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(u),5000);const d=Math.floor((Date.now()-recStartTime)/1000);setStatus('✓ Saved • '+Math.floor(d/60)+':'+String(d%60).padStart(2,'0'))}catch(e){setStatus('Export Error')}}catch(e){setStatus('Export Error');mixChunks=[];mixStreamDest=null;mixRecorder=null}};try{mixRecorder.stop()}catch(e){setStatus('Export Error');mixChunks=[];mixStreamDest=null;mixRecorder=null}isRecording=false}
+      try{if(mixStreamDest){try{masterGain.disconnect(mixStreamDest)}catch(e){}}if(!mixChunks.length){setStatus('No Audio');return}const actualMime=mixRecorder.mimeType||'audio/webm';const rawBlob=new Blob(mixChunks,{type:actualMime});if(rawBlob.size<1000){setStatus('Too short');mixChunks=[];mixStreamDest=null;mixRecorder=null;return}setStatus('Processing MP3…');try{const arr=await rawBlob.arrayBuffer();const ab=await audioCtx.decodeAudioData(arr);const mp3=await convertToMP3(ab);if(mp3.size<1000){setStatus('MP3 failed');mixChunks=[];mixStreamDest=null;mixRecorder=null;return}if(window.vkBridge){try{const vkUrl=URL.createObjectURL(mp3);const vkRes=await window.vkBridge.send('VKWebAppDownloadFile',{url:vkUrl,filename:'dj_mix_'+Date.now()+'.mp3'});URL.revokeObjectURL(vkUrl);if(vkRes&&vkRes.result){const d=Math.floor((Date.now()-recStartTime)/1000);setStatus('✓ Saved • '+Math.floor(d/60)+':'+String(d%60).padStart(2,'0')+' • MP3');mixChunks=[];mixStreamDest=null;mixRecorder=null;return}}catch(e){}}if(navigator.share&&navigator.canShare){const file=new File([mp3],'dj_mix_'+Date.now()+'.mp3',{type:'audio/mp3'});if(navigator.canShare({files:[file]})){try{await navigator.share({files:[file]});const d=Math.floor((Date.now()-recStartTime)/1000);setStatus('✓ Saved');mixChunks=[];mixStreamDest=null;mixRecorder=null;return}catch(e){}}}const u=URL.createObjectURL(mp3);const a=document.createElement('a');a.href=u;a.download='dj_mix_'+Date.now()+'.mp3';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(u),5000);const d=Math.floor((Date.now()-recStartTime)/1000);setStatus('✓ Saved • '+Math.floor(d/60)+':'+String(d%60).padStart(2,'0'))}catch(e){setStatus('Export Error')}}catch(e){setStatus('Export Error');mixChunks=[];mixStreamDest=null;mixRecorder=null}};try{mixRecorder.stop()}catch(e){setStatus('Export Error');mixChunks=[];mixStreamDest=null;mixRecorder=null}isRecording=false}
 }
 
 async function convertToMP3(ab){const sr=ab.sampleRate,nc=ab.numberOfChannels,len=ab.length;const enc=new lamejs.Mp3Encoder(nc>=2?2:1,sr,192);const l=f32(ab.getChannelData(0)),r=nc>=2?f32(ab.getChannelData(1)):l;const d=[];for(let i=0;i<len;i+=1152){const b=enc.encodeBuffer(l.subarray(i,i+1152),r.subarray(i,i+1152));if(b.length)d.push(b)}const e=enc.flush();if(e.length)d.push(e);return new Blob(d,{type:'audio/mp3'})}
@@ -499,7 +551,14 @@ function findFirstPeak(buf){const data=buf.getChannelData(0),sr=buf.sampleRate,t
 
 function setStatus(m){document.getElementById('status').textContent=m}
 
-window.addEventListener('DOMContentLoaded',()=>{checkOnboarding();updateOrientation();setStatus('Ready • Load Tracks to Begin');if(screen.orientation&&screen.orientation.lock){screen.orientation.lock('landscape').catch(()=>{})}});
+window.addEventListener('DOMContentLoaded',()=>{
+  checkOnboarding();
+  updateOrientation();
+  initVK();
+  startAdTimer();
+  setStatus('Ready • Load Tracks to Begin');
+  if(screen.orientation&&screen.orientation.lock){screen.orientation.lock('landscape').catch(()=>{})}
+});
 document.addEventListener('click',function lockOrientation(){if(screen.orientation&&screen.orientation.lock){screen.orientation.lock('landscape').catch(()=>{})}document.removeEventListener('click',lockOrientation)},{once:true});
 </script>
 </body>
