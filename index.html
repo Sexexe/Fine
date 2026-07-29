@@ -67,7 +67,10 @@ html,body{
 .inv-btn:active{transform:scale(.94)}
 .inv-btn.active{background:var(--blue);border-color:var(--blue-bright);color:var(--white);box-shadow:0 0 12px var(--blue-glow)}
 .mixer{background:rgba(15,15,15,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--white-08);border-radius:var(--radius-lg);padding:12px 8px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:10px;min-height:0;width:200px;flex:0 0 200px}
-.mixer-title{font-size:9px;font-weight:600;letter-spacing:.1em;color:var(--white-70);text-transform:uppercase;flex-shrink:0}
+.mixer-title{font-size:9px;font-weight:600;letter-spacing:.1em;color:var(--white-70);text-transform:uppercase;flex-shrink:0;margin-top:38px}
+.info-btn{background:none;border:1px solid var(--blue-bright);color:var(--blue-bright);padding:6px 16px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.05em}
+.info-btn:hover{background:var(--blue-bright);color:var(--white)}
+.info-btn:active{transform:scale(.95)}
 .swap-btn{width:48px;height:48px;border-radius:var(--radius-md);border:none;background:var(--white-08);color:var(--white);font-size:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4),inset 0 1px 0 var(--white-08);transition:all .2s ease;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .swap-btn:hover{background:var(--white-15);transform:scale(1.05)}
 .swap-btn:active{transform:scale(.94)}
@@ -116,6 +119,19 @@ input[type=file]{display:none}
 .onboarding-btn{width:100%;padding:14px;background:var(--blue);border:none;border-radius:var(--radius-md);color:var(--white);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s ease;letter-spacing:.02em}
 .onboarding-btn:hover{background:var(--blue-bright)}
 .onboarding-btn:active{transform:scale(.98)}
+
+/* Модальное окно INFO */
+.info-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.95);z-index:10001;display:none;align-items:center;justify-content:center;padding:20px}
+.info-modal.active{display:flex}
+.info-modal-content{max-width:600px;width:100%;max-height:85vh;background:rgba(20,20,20,.98);backdrop-filter:blur(20px);border:1px solid var(--white-15);border-radius:var(--radius-lg);padding:24px;overflow-y:auto}
+.info-modal-title{font-size:20px;font-weight:700;color:var(--white);text-align:center;margin-bottom:20px;letter-spacing:.02em}
+.info-modal-title span{color:var(--blue-bright)}
+.info-section{margin-bottom:20px;padding:12px;background:rgba(255,255,255,.03);border-radius:var(--radius-md);border:1px solid var(--white-08)}
+.info-section-title{font-size:14px;font-weight:600;color:var(--blue-bright);margin-bottom:8px}
+.info-section-text{font-size:12px;color:var(--white-70);line-height:1.5}
+.info-section-text b{color:var(--white)}
+.info-close-btn{width:100%;padding:12px;background:var(--blue);border:none;border-radius:var(--radius-md);color:var(--white);font-size:13px;font-weight:600;cursor:pointer;margin-top:16px}
+.info-close-btn:hover{background:var(--blue-bright)}
 
 body.mobile-portrait .rotate-overlay{display:flex !important}
 body.mobile-portrait .console{display:none}
@@ -179,11 +195,91 @@ body.mobile-landscape .status{font-size:7px;padding:2px 6px}
     <div class="onboarding-steps">
       <div class="onboarding-step"><div class="onboarding-step-icon"></div><div class="onboarding-step-text"><div class="onboarding-step-title">1. Загрузка треков</div><div class="onboarding-step-desc">Нажмите на пластинку <b>Deck A</b> или <b>Deck B</b>. Выберите MP3/WAV/OGG. BPM определится автоматически.</div></div></div>
       <div class="onboarding-step"><div class="onboarding-step-icon">▶️</div><div class="onboarding-step-text"><div class="onboarding-step-title">2. Воспроизведение</div><div class="onboarding-step-desc"><b>Play/Pause</b> — запуск/остановка. <b>Loop</b> — зацикливание. Фейдеры — громкость канала.</div></div></div>
-      <div class="onboarding-step"><div class="onboarding-step-icon">🎛️</div><div class="onboarding-step-text"><div class="onboarding-step-title">3. Эквалайзер</div><div class="onboarding-step-desc"><b>Trbl</b> — высокие частоты. <b>Bass</b> — низкие. <b>Delay</b> — эхо. <b>INV</b> — реверс трека.</div></div></div>
+      <div class="onboarding-step"><div class="onboarding-step-icon">️</div><div class="onboarding-step-text"><div class="onboarding-step-title">3. Эквалайзер</div><div class="onboarding-step-desc"><b>Trbl</b> — высокие частоты. <b>Bass</b> — низкие. <b>Delay</b> — эхо. <b>INV</b> — реверс трека.</div></div></div>
       <div class="onboarding-step"><div class="onboarding-step-icon">🔄</div><div class="onboarding-step-text"><div class="onboarding-step-title">4. Синхронизация</div><div class="onboarding-step-desc"><b>SYNC</b> — подстраивает BPM второго трека под первый. <b>⇄</b> — обмен треками между деками.</div></div></div>
       <div class="onboarding-step"><div class="onboarding-step-icon">🎙️</div><div class="onboarding-step-text"><div class="onboarding-step-title">5. Запись микса</div><div class="onboarding-step-desc"><b>REC MIX</b> — запись микса в MP3. Файл сохранится на устройстве.</div></div></div>
     </div>
     <button class="onboarding-btn" onclick="closeOnboarding()">Начать микширование</button>
+  </div>
+</div>
+
+<div class="info-modal" id="infoModal">
+  <div class="info-modal-content">
+    <div class="info-modal-title">DJ BOX <span>PRO</span> — Полное руководство</div>
+    
+    <div class="info-section">
+      <div class="info-section-title">🎵 ЗАГРУЗКА ТРЕКОВ</div>
+      <div class="info-section-text">
+        • Нажмите на <b>пластинку Deck A</b> (левая) или <b>Deck B</b> (правая)<br>
+        • В открывшемся окне выберите аудиофайл (MP3, WAV, OGG, FLAC)<br>
+        • После загрузки BPM определится автоматически и отобразится под названием трека<br>
+        • Можно загрузить два разных трека для микширования
+      </div>
+    </div>
+    
+    <div class="info-section">
+      <div class="info-section-title">▶️ УПРАВЛЕНИЕ ВОСПРОИЗВЕДЕНИЕМ</div>
+      <div class="info-section-text">
+        • <b>Кнопка Play/Pause (▶/❚❚)</b> — первое нажатие запускает трек, второе ставит на паузу<br>
+        • <b>Кнопка Loop (🔁)</b> — включает зацикливание трека (повтор с начала после окончания)<br>
+        • <b>Фейдеры громкости</b> (вертикальные ползунки в центре) — регулируют громкость каждого канала от 0 до 100%<br>
+        • Индикатор VU-meter показывает уровень сигнала в реальном времени
+      </div>
+    </div>
+    
+    <div class="info-section">
+      <div class="info-section-title">🎛️ ЭКВАЛАЙЗЕР И ЭФФЕКТЫ</div>
+      <div class="info-section-text">
+        • <b>Trbl (Treble)</b> — регулировка высоких частот от -24 до +24 dB. Увеличение добавляет яркость и чёткость<br>
+        • <b>Bass</b> — регулировка низких частот от -24 до +24 dB. Увеличение добавляет глубину и мощь<br>
+        • <b>Delay</b> — эффект эха от 0 до 1000 мс. Создаёт повторяющиеся затухающие копии звука<br>
+        • <b>INV (Invert)</b> — инвертирует фазу трека (реверс). Полезно для создания эффектов и сведения<br>
+        • На мобильных устройствах эквалайзер доступен на краях экрана (вертикальные слайдеры)
+      </div>
+    </div>
+    
+    <div class="info-section">
+      <div class="info-section-title">🔄 СИНХРОНИЗАЦИЯ И ОБМЕН</div>
+      <div class="info-section-text">
+        • <b>SYNC</b> — автоматически определяет BPM обоих треков и подстраивает второй под первый. Оба трека будут играть в одном темпе<br>
+        • <b>⇄ (Swap)</b> — меняет треки между деками местами. Если один трек играет, он продолжит играть на новом деке<br>
+        • После SYNC второй трек замедлится или ускорится для совпадения темпа
+      </div>
+    </div>
+    
+    <div class="info-section">
+      <div class="info-section-title">🎙️ ЗАПИСЬ МИКСА</div>
+      <div class="info-section-text">
+        • <b>REC MIX</b> — начинает запись всего микса (оба канала + эффекты) в формате MP3<br>
+        • Во время записи кнопка становится красной и показывает таймер<br>
+        • Повторное нажатие останавливает запись и сохраняет файл на устройство<br>
+        • Файл автоматически скачивается или открывается меню "Поделиться" на мобильных
+      </div>
+    </div>
+    
+    <div class="info-section">
+      <div class="info-section-title">📱 МОБИЛЬНАЯ ВЕРСИЯ</div>
+      <div class="info-section-text">
+        • Приложение работает только в <b>альбомной (горизонтальной)</b> ориентации<br>
+        • Если телефон в портретной — появится просьба повернуть устройство<br>
+        • Эквалайзер вынесен на края экрана для удобства управления пальцами<br>
+        • Все функции доступны как на ПК, так и на мобильных устройствах
+      </div>
+    </div>
+    
+    <div class="info-section">
+      <div class="info-section-title">💡 СОВЕТЫ ПО МИКШИРОВАНИЮ</div>
+      <div class="info-section-text">
+        • Загрузите два трека с близким BPM для лучшего сведения<br>
+        • Используйте SYNC для автоматической синхронизации темпа<br>
+        • Плавно меняйте громкость фейдерами для перехода между треками<br>
+        • Экспериментируйте с эквалайзером для создания уникального звучания<br>
+        • Delay добавляет пространство и глубину, но не переусердствуйте<br>
+        • Записывайте лучшие миксы через REC MIX для сохранения
+      </div>
+    </div>
+    
+    <button class="info-close-btn" onclick="closeInfoModal()">Понятно, начать микширование</button>
   </div>
 </div>
 
@@ -222,6 +318,7 @@ body.mobile-landscape .status{font-size:7px;padding:2px 6px}
 
     <div class="mixer">
       <div class="mixer-title">Mixer</div>
+      <button class="info-btn" onclick="openInfoModal()">INFO</button>
       <button class="swap-btn" onclick="swapDecks()" title="Swap tracks">⇄</button>
       <div class="faders-row">
         <div class="fader-group"><div class="fader-label">A</div><div class="fader-value" id="volVal1">80</div><input type="range" class="fader-slider" id="vol1" min="0" max="100" value="80" step="1" oninput="updateVolume(1)"></div>
@@ -267,10 +364,9 @@ const decks={
 };
 let isRecording=false,mixRecorder=null,mixStreamDest=null,mixChunks=[],recStartTime=0,recTimer=null;
 
-// ===== VK BRIDGE =====
 let vkReady=false;
 let adReady=false;
-let adCheckTimer=null;
+let adIntervalId=null;
 
 function initVK(){
   if(!window.vkBridge)return;
@@ -291,14 +387,12 @@ function showInterstitialAd(callback){
   if(!window.vkBridge){if(callback)callback();return}
   if(!vkReady){if(callback)callback();return}
   
-  // Проверяем готовность рекламы
   window.vkBridge.send('VKWebAppCheckNativeAds',{ad_format:'interstitial'}).then(d=>{
     if(d.result){
       window.vkBridge.send('VKWebAppShowNativeAds',{ad_format:'interstitial'}).then(()=>{
         if(callback)callback();
       }).catch(()=>{if(callback)callback()});
     } else {
-      // Реклама не готова — пробуем через 3 секунды
       setTimeout(()=>{
         window.vkBridge.send('VKWebAppShowNativeAds',{ad_format:'interstitial'}).then(()=>{
           if(callback)callback();
@@ -308,13 +402,11 @@ function showInterstitialAd(callback){
   }).catch(()=>{if(callback)callback()});
 }
 
-// Таймер рекламы каждые 15 минут
-let adIntervalId=null;
 function startAdTimer(){
   if(adIntervalId)clearInterval(adIntervalId);
   adIntervalId=setInterval(()=>{
     showInterstitialAd();
-  },15*60*1000); // 15 минут
+  },25*60*1000);
 }
 
 function checkOnboarding(){
@@ -323,6 +415,9 @@ function checkOnboarding(){
   else{document.getElementById('onboardingOverlay').classList.add('hidden')}
 }
 function closeOnboarding(){localStorage.setItem('djbox_onboarded','true');document.getElementById('onboardingOverlay').classList.add('hidden')}
+
+function openInfoModal(){document.getElementById('infoModal').classList.add('active')}
+function closeInfoModal(){document.getElementById('infoModal').classList.remove('active')}
 
 function updateOrientation(){
   const isMobile=window.innerWidth<=899;
@@ -403,12 +498,6 @@ async function loadTrack(n,input){
     const pb=document.getElementById('play'+n);pb.disabled=false;pb.textContent='▶';pb.classList.remove('active');
     document.getElementById('loop'+n).disabled=false;
     setStatus('Deck '+(n===1?'A':'B')+' Loaded'+(d.bpm>0?' • '+d.bpm.toFixed(1)+' BPM':''));
-    
-    // Счётчик загрузок — реклама при каждом втором
-    trackLoadCount++;
-    if(trackLoadCount%2===0){
-      showInterstitialAd();
-    }
   }catch(e){setStatus('Load Error')}
 }
 
@@ -422,7 +511,7 @@ function startSource(n,offset){
     d.source.start(0,Math.max(0,offset));
     d.startTime=audioCtx.currentTime-offset;d.playing=true;
     d.source.onended=()=>{if(d.playing){if(d.loop){startSource(n,0)}else{d.playing=false;d.pauseOffset=0;const b=document.getElementById('play'+n);if(b){b.classList.remove('active');b.textContent='▶'}}}};
-    const b=document.getElementById('play'+n);if(b){b.classList.add('active');b.textContent='❚❚'}
+    const b=document.getElementById('play'+n);if(b){b.classList.add('active');b.textContent='❚'}
     return true
   }catch(e){return false}
 }
@@ -531,12 +620,8 @@ async function toggleRecording(){
   if(!initAudio())return;
   const btn=document.getElementById('recBtn'),lb=document.getElementById('recLabel');
   if(!isRecording){
-    // Показываем рекламу при начале записи микса
-    showInterstitialAd(()=>{
-      // После рекламы (или сразу если рекламы нет) начинаем запись
-      try{
-        mixStreamDest=audioCtx.createMediaStreamDestination();masterGain.connect(mixStreamDest);mixChunks=[];let mimeType='';const mimeList=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus','audio/ogg',''];for(const mt of mimeList){if(!mt||(typeof MediaRecorder!=='undefined'&&MediaRecorder.isTypeSupported(mt))){mimeType=mt;break}}const recorderOptions={};if(mimeType)recorderOptions.mimeType=mimeType;mixRecorder=new MediaRecorder(mixStreamDest.stream,recorderOptions);mixRecorder.ondataavailable=e=>{if(e.data&&e.data.size>0)mixChunks.push(e.data)};mixRecorder.start(250);isRecording=true;recStartTime=Date.now();btn.classList.add('recording');lb.textContent='REC • 00:00';recTimer=setInterval(()=>{const e=Math.floor((Date.now()-recStartTime)/1000);lb.textContent='REC • '+String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0')},1000);setStatus('● Recording…')}catch(e){setStatus('Rec Error: '+e.message)}
-    });
+    try{
+      mixStreamDest=audioCtx.createMediaStreamDestination();masterGain.connect(mixStreamDest);mixChunks=[];let mimeType='';const mimeList=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus','audio/ogg',''];for(const mt of mimeList){if(!mt||(typeof MediaRecorder!=='undefined'&&MediaRecorder.isTypeSupported(mt))){mimeType=mt;break}}const recorderOptions={};if(mimeType)recorderOptions.mimeType=mimeType;mixRecorder=new MediaRecorder(mixStreamDest.stream,recorderOptions);mixRecorder.ondataavailable=e=>{if(e.data&&e.data.size>0)mixChunks.push(e.data)};mixRecorder.start(250);isRecording=true;recStartTime=Date.now();btn.classList.add('recording');lb.textContent='REC • 00:00';recTimer=setInterval(()=>{const e=Math.floor((Date.now()-recStartTime)/1000);lb.textContent='REC • '+String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0')},1000);setStatus('● Recording…')}catch(e){setStatus('Rec Error: '+e.message)}
   }else{
     clearInterval(recTimer);btn.classList.remove('recording');lb.textContent='REC MIX';setStatus('Processing…');
     mixRecorder.onstop=async()=>{
