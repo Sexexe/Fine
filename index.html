@@ -136,53 +136,33 @@ input[type=file]{display:none}
 body.mobile-portrait .rotate-overlay{display:flex !important}
 body.mobile-portrait .console{display:none}
 
-body.mobile-landscape .edge-eq{display:flex;flex-direction:column;gap:4px;width:36px;flex-shrink:0;align-items:center;padding:4px 2px;background:rgba(15,15,15,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--white-08);border-radius:var(--radius-md);justify-content:center;margin:0 24px}
-body.mobile-landscape :root{--fader-length:120px;--turntable-size:108px;--inv-height:48px}
-body.mobile-landscape .console{padding:4px;gap:4px}
-body.mobile-landscape .header{padding:3px 10px}
-body.mobile-landscape .logo{font-size:11px;left:10px}
-body.mobile-landscape .rec-btn{padding:3px 10px;font-size:9px;gap:4px}
-body.mobile-landscape .rec-dot{width:5px;height:5px}
-body.mobile-landscape .main{gap:4px}
-body.mobile-landscape .edge-eq-row{display:flex;flex-direction:column;align-items:center;gap:2px}
-body.mobile-landscape .edge-eq .eq-slider{width:3px;height:50px;writing-mode:vertical-lr;direction:rtl}
-body.mobile-landscape .edge-eq .eq-slider::-webkit-slider-thumb{width:12px;height:12px}
-body.mobile-landscape .edge-eq .eq-slider::-moz-range-thumb{width:12px;height:12px;border:none}
-body.mobile-landscape .edge-eq .eq-label{font-size:5px;width:auto;margin-top:1px}
-body.mobile-landscape .edge-eq .eq-value{display:none}
-body.mobile-landscape .edge-eq .inv-btn{width:24px;height:36px;font-size:5px;border-radius:4px}
-body.mobile-landscape .deck .eq-panel{display:none}
-body.mobile-landscape .deck{flex:1;padding:6px;gap:6px;flex-direction:column;justify-content:center;align-items:center}
-body.mobile-landscape .deck-label{position:static;font-size:8px;padding:1px 8px;line-height:14px;align-self:center}
-body.mobile-landscape .turntable{width:var(--turntable-size);height:var(--turntable-size)}
-body.mobile-landscape .label{font-size:8px}
-body.mobile-landscape .spindle{width:6px;height:6px}
-body.mobile-landscape .tonearm{height:44px;width:2px;top:4px;right:4px}
-body.mobile-landscape .info-display{max-width:none;width:100%;padding:2px 6px}
-body.mobile-landscape .track-name{font-size:11px;max-width:none}
-body.mobile-landscape .bpm-display{font-size:17px;margin-top:0}
-body.mobile-landscape .time-display{padding:1px 6px;width:100%}
-body.mobile-landscape .time-text{font-size:11px}
-body.mobile-landscape .controls-row{gap:10px}
-body.mobile-landscape .play-btn{width:50px;height:50px;font-size:20px}
-body.mobile-landscape .loop-btn{width:34px;height:34px;font-size:13px}
-/* ИЗМЕНЕНИЕ: mixer растягивается на всю высоту, чтобы выровнять низ с деками */
-body.mobile-landscape .mixer{width:auto;flex:1;min-width:auto;padding:6px;gap:4px;justify-content:center}
-body.mobile-landscape .mixer-title{display:none}
-body.mobile-landscape .swap-btn{width:32px;height:32px;font-size:16px;align-self:center;position:relative;top:-38px;margin-bottom:-38px}
-body.mobile-landscape .faders-row{display:flex;flex-direction:row;gap:38px;align-items:center;justify-content:center;border:none;padding:0;width:auto}
-body.mobile-landscape .fader-group{gap:2px}
-body.mobile-landscape .fader-label{font-size:6px}
-body.mobile-landscape .fader-value{font-size:7px}
-body.mobile-landscape .fader-slider{width:3px;height:var(--fader-length)}
-body.mobile-landscape .fader-slider::-webkit-slider-thumb{width:12px;height:12px}
-body.mobile-landscape .fader-slider::-moz-range-thumb{width:12px;height:12px;border:none}
-body.mobile-landscape .sync-btn{width:43px;height:43px;font-size:8px}
-body.mobile-landscape .sync-btn::before{top:3px;left:3px;right:3px;bottom:3px}
-body.mobile-landscape .vu-meter{height:3px}
-body.mobile-landscape .status{font-size:7px;padding:2px 6px}
-/* ИЗМЕНЕНИЕ: кнопка INFO прижимается к самому низу на мобильных */
-body.mobile-landscape .info-btn{order:10;margin-top:auto;width:100%;padding:8px 0;font-size:10px}
+/* === ПРОПОРЦИОНАЛЬНОЕ МАСШТАБИРОВАНИЕ ДЛЯ МОБИЛЬНЫХ (АЛЬБОМНАЯ ОРИЕНТАЦИЯ) === */
+body.mobile-landscape .console {
+    /* Коэффициент масштабирования. 0.75 означает 75% от оригинального размера ПК-версии.
+       Можно немного уменьшить (например, до 0.7) или увеличить (до 0.8) в зависимости от целевых устройств */
+    transform: scale(0.75);
+    transform-origin: center center;
+    
+    /* Компенсация масштаба, чтобы элемент занимал 100% экрана без полос прокрутки */
+    width: 133.33vw;  /* 100vw / 0.75 */
+    height: 133.33vh; /* 100vh / 0.75 */
+    max-width: 133.33vw;
+    max-height: 133.33vh;
+    
+    /* Возврат оригинальных значений ПК-версии */
+    padding: 8px;
+    gap: 8px;
+}
+
+/* Сброс всех предыдущих мобильных переопределений для сохранения точной копии ПК-дизайна */
+body.mobile-landscape .edge-eq { display: none; }
+body.mobile-landscape .deck .eq-panel { display: flex; }
+body.mobile-landscape .mixer { width: 200px; flex: 0 0 200px; }
+body.mobile-landscape .mixer-title { display: block; margin-top: 38px; }
+body.mobile-landscape .swap-btn { position: static; width: 48px; height: 48px; margin: 0; top: auto; }
+body.mobile-landscape .info-btn { order: 0; margin-top: 0; width: auto; padding: 6px 16px; }
+body.mobile-landscape .faders-row { flex-direction: row; gap: 18px; border-top: 1px solid var(--white-08); border-bottom: 1px solid var(--white-08); padding: 10px 0; }
+body.mobile-landscape .fader-slider { writing-mode: vertical-lr; direction: rtl; width: 5px; height: var(--fader-length); }
 
 .rotate-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:20px;text-align:center;padding:40px}
 .rotate-icon{font-size:80px;animation:rotatePhone 2s ease-in-out infinite}
