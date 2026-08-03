@@ -136,33 +136,17 @@ input[type=file]{display:none}
 body.mobile-portrait .rotate-overlay{display:flex !important}
 body.mobile-portrait .console{display:none}
 
-/* === ПРОПОРЦИОНАЛЬНОЕ МАСШТАБИРОВАНИЕ ДЛЯ МОБИЛЬНЫХ (АЛЬБОМНАЯ ОРИЕНТАЦИЯ) === */
-body.mobile-landscape .console {
-    /* Коэффициент масштабирования. 0.75 означает 75% от оригинального размера ПК-версии.
-       Можно немного уменьшить (например, до 0.7) или увеличить (до 0.8) в зависимости от целевых устройств */
-    transform: scale(0.75);
-    transform-origin: center center;
-    
-    /* Компенсация масштаба, чтобы элемент занимал 100% экрана без полос прокрутки */
-    width: 133.33vw;  /* 100vw / 0.75 */
-    height: 133.33vh; /* 100vh / 0.75 */
-    max-width: 133.33vw;
-    max-height: 133.33vh;
-    
-    /* Возврат оригинальных значений ПК-версии */
-    padding: 8px;
-    gap: 8px;
+/* === МОБИЛЬНАЯ ВЕРСИЯ (альбомная) = точная пропорциональная копия ПК ===
+   Консоль рисуется в "десктопном" размере и равномерно уменьшается,
+   чтобы целиком поместиться на экране. Масштаб от левого верхнего угла,
+   поэтому ничего не уезжает вбок. */
+body.mobile-landscape .console{
+  transform:scale(var(--mscale,.7));
+  transform-origin:0 0;
+  width:var(--msw,142.86vw);
+  height:var(--msh,142.86vh);
+  padding:8px;gap:8px;
 }
-
-/* Сброс всех предыдущих мобильных переопределений для сохранения точной копии ПК-дизайна */
-body.mobile-landscape .edge-eq { display: none; }
-body.mobile-landscape .deck .eq-panel { display: flex; }
-body.mobile-landscape .mixer { width: 200px; flex: 0 0 200px; }
-body.mobile-landscape .mixer-title { display: block; margin-top: 38px; }
-body.mobile-landscape .swap-btn { position: static; width: 48px; height: 48px; margin: 0; top: auto; }
-body.mobile-landscape .info-btn { order: 0; margin-top: 0; width: auto; padding: 6px 16px; }
-body.mobile-landscape .faders-row { flex-direction: row; gap: 18px; border-top: 1px solid var(--white-08); border-bottom: 1px solid var(--white-08); padding: 10px 0; }
-body.mobile-landscape .fader-slider { writing-mode: vertical-lr; direction: rtl; width: 5px; height: var(--fader-length); }
 
 .rotate-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:20px;text-align:center;padding:40px}
 .rotate-icon{font-size:80px;animation:rotatePhone 2s ease-in-out infinite}
@@ -245,7 +229,7 @@ body.mobile-landscape .fader-slider { writing-mode: vertical-lr; direction: rtl;
       <div class="info-section-text">
         • Приложение работает только в <b>альбомной (горизонтальной)</b> ориентации<br>
         • Если телефон в портретной — появится просьба повернуть устройство<br>
-        • Эквалайзер вынесен на края экрана для удобства управления пальцами<br>
+        • Интерфейс — точная уменьшенная копия ПК-версии<br>
         • Все функции доступны как на ПК, так и на мобильных устройствах
       </div>
     </div>
@@ -402,11 +386,26 @@ function closeOnboarding(){localStorage.setItem('djbox_onboarded','true');docume
 function openInfoModal(){document.getElementById('infoModal').classList.add('active')}
 function closeInfoModal(){document.getElementById('infoModal').classList.remove('active')}
 
+/* Автоматический подбор масштаба: консоль рисуется как на ПК (минимум 1000x520)
+   и равномерно уменьшается, чтобы целиком поместиться в экран телефона */
+function updateMobileScale(){
+  const isMobile=window.innerWidth<=899;
+  const isLandscape=window.matchMedia('(orientation: landscape)').matches;
+  if(!isMobile||!isLandscape)return;
+  const DESIGN_W=1000,DESIGN_H=520;
+  let s=Math.min(window.innerWidth/DESIGN_W,window.innerHeight/DESIGN_H);
+  s=Math.max(0.45,Math.min(1,s));
+  const u=(window.CSS&&CSS.supports&&CSS.supports('height','1dvh'))?'dvh':'vh';
+  document.documentElement.style.setProperty('--mscale',s.toFixed(4));
+  document.documentElement.style.setProperty('--msw',(100/s).toFixed(2)+'vw');
+  document.documentElement.style.setProperty('--msh',(100/s).toFixed(2)+u);
+}
+
 function updateOrientation(){
   const isMobile=window.innerWidth<=899;
   const isLandscape=window.matchMedia('(orientation: landscape)').matches;
   document.body.classList.remove('mobile-portrait','mobile-landscape');
-  if(isMobile){document.body.classList.add(isLandscape?'mobile-landscape':'mobile-portrait')}
+  if(isMobile){document.body.classList.add(isLandscape?'mobile-landscape':'mobile-portrait');updateMobileScale()}
 }
 window.addEventListener('resize',updateOrientation);
 window.addEventListener('orientationchange',()=>{setTimeout(updateOrientation,100)});
