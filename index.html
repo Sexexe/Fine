@@ -133,13 +133,77 @@ input[type=file]{display:none}
 .info-close-btn{width:100%;padding:12px;background:var(--blue);border:none;border-radius:var(--radius-md);color:var(--white);font-size:13px;font-weight:600;cursor:pointer;margin-top:16px}
 .info-close-btn:hover{background:var(--blue-bright)}
 
-body.mobile-portrait .rotate-overlay{display:flex !important}
-body.mobile-portrait .console{display:none}
+/* === МОБИЛЬНАЯ ВЕРСИЯ — ПОРТРЕТ (и iOS): всё умещается на одном экране БЕЗ прокрутки === */
+body.mobile-portrait{--fader-length:64px;--fader-gap:6px;--turntable-size:76px;--inv-height:44px}
+body.mobile-portrait .console{
+  overflow:hidden;gap:6px;
+  padding-top:max(6px, env(safe-area-inset-top));
+  padding-bottom:max(6px, env(safe-area-inset-bottom));
+  padding-left:6px;padding-right:6px;
+}
+body.mobile-portrait .header{padding:4px 10px}
+body.mobile-portrait .logo{font-size:12px;left:10px}
+body.mobile-portrait .rec-btn{padding:4px 10px;font-size:9px;gap:4px}
+body.mobile-portrait .rec-dot{width:5px;height:5px}
+body.mobile-portrait .main{flex-direction:column;flex:1 1 auto;min-height:0;height:auto;gap:6px}
+body.mobile-portrait .deck{
+  flex:1 1 0;min-height:0;padding:6px;gap:4px;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  grid-template-areas:
+    "label label label"
+    "turn info controls"
+    "turn time controls"
+    "eq eq eq";
+  align-items:center;
+}
+body.mobile-portrait .deck-label{grid-area:label;justify-self:center;font-size:8px;padding:1px 8px}
+body.mobile-portrait .turntable{grid-area:turn}
+body.mobile-portrait .tonearm{height:30px;width:2px;top:4px;right:4px}
+body.mobile-portrait .info-display{grid-area:info;max-width:none;width:auto;padding:2px 6px}
+body.mobile-portrait .track-name{font-size:10px}
+body.mobile-portrait .bpm-display{font-size:14px;margin-top:0}
+body.mobile-portrait .time-display{grid-area:time;max-width:none;width:auto;padding:1px 6px}
+body.mobile-portrait .time-text{font-size:9px}
+body.mobile-portrait .controls-row{grid-area:controls;flex-direction:column;gap:6px}
+body.mobile-portrait .play-btn{width:40px;height:40px;font-size:15px}
+body.mobile-portrait .loop-btn{width:32px;height:32px;font-size:12px}
+body.mobile-portrait .eq-panel{grid-area:eq;max-width:none;width:100%;padding:4px 6px;gap:6px}
+body.mobile-portrait .eq-sliders{gap:4px;width:100%}
+body.mobile-portrait .eq-row{gap:6px}
+body.mobile-portrait .eq-label{width:26px;font-size:7px}
+body.mobile-portrait .eq-slider{flex:1;min-width:0;width:auto}
+body.mobile-portrait .eq-slider::-webkit-slider-thumb{width:12px;height:12px}
+body.mobile-portrait .eq-slider::-moz-range-thumb{width:12px;height:12px}
+body.mobile-portrait .eq-value{width:22px;font-size:8px}
+body.mobile-portrait .inv-btn{width:30px}
+body.mobile-portrait .mixer{width:100%;flex:0 0 auto;padding:6px;gap:6px;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between}
+body.mobile-portrait .mixer-title{display:none}
+body.mobile-portrait .info-btn{padding:4px 10px;font-size:9px}
+body.mobile-portrait .swap-btn{width:36px;height:36px;font-size:16px}
+body.mobile-portrait .faders-row{width:auto;flex:1;border:none;padding:2px 0;gap:12px;justify-content:center}
+body.mobile-portrait .fader-group{gap:2px}
+body.mobile-portrait .fader-label{font-size:6px}
+body.mobile-portrait .fader-value{font-size:7px}
+body.mobile-portrait .fader-slider::-webkit-slider-thumb{width:12px;height:12px}
+body.mobile-portrait .fader-slider::-moz-range-thumb{width:12px;height:12px}
+body.mobile-portrait .sync-btn{width:44px;height:44px;font-size:8px}
+body.mobile-portrait .sync-btn::before{top:3px;left:3px;right:3px;bottom:3px}
+body.mobile-portrait .vu-meter{flex-basis:100%;order:10;height:4px}
+body.mobile-portrait .status{font-size:8px;padding:3px 8px}
+/* компактный режим для невысоких экранов */
+@media (max-height:640px){
+  body.mobile-portrait{--turntable-size:64px;--fader-length:52px;--inv-height:38px}
+  body.mobile-portrait .play-btn{width:36px;height:36px;font-size:13px}
+  body.mobile-portrait .loop-btn{width:28px;height:28px;font-size:11px}
+  body.mobile-portrait .sync-btn{width:38px;height:38px}
+  body.mobile-portrait .bpm-display{font-size:12px}
+  body.mobile-portrait .eq-panel{padding:3px 6px}
+  body.mobile-portrait .eq-sliders{gap:3px}
+  body.mobile-portrait .swap-btn{width:32px;height:32px}
+}
 
-/* === МОБИЛЬНАЯ ВЕРСИЯ (альбомная) = точная пропорциональная копия ПК ===
-   Консоль рисуется в "десктопном" размере и равномерно уменьшается,
-   чтобы целиком поместиться на экране. Масштаб от левого верхнего угла,
-   поэтому ничего не уезжает вбок. */
+/* === МОБИЛЬНАЯ ВЕРСИЯ — АЛЬБОМНАЯ (если пользователь сам повернул): копия ПК, уменьшенная пропорционально === */
 body.mobile-landscape .console{
   transform:scale(var(--mscale,.7));
   transform-origin:0 0;
@@ -147,11 +211,6 @@ body.mobile-landscape .console{
   height:var(--msh,142.86vh);
   padding:8px;gap:8px;
 }
-
-.rotate-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:20px;text-align:center;padding:40px}
-.rotate-icon{font-size:80px;animation:rotatePhone 2s ease-in-out infinite}
-@keyframes rotatePhone{0%,100%{transform:rotate(0deg)}50%{transform:rotate(90deg)}}
-.rotate-text{font-size:18px;font-weight:600;color:var(--white-70)}
 </style>
 </head>
 <body>
@@ -160,9 +219,9 @@ body.mobile-landscape .console{
     <div class="onboarding-title">DJ BOX <span>PRO</span></div>
     <div class="onboarding-subtitle">Профессиональный DJ-микшер</div>
     <div class="onboarding-steps">
-      <div class="onboarding-step"><div class="onboarding-step-icon"></div><div class="onboarding-step-text"><div class="onboarding-step-title">1. Загрузка треков</div><div class="onboarding-step-desc">Нажмите на пластинку <b>Deck A</b> или <b>Deck B</b>. Выберите MP3/WAV/OGG. BPM определится автоматически.</div></div></div>
+      <div class="onboarding-step"><div class="onboarding-step-icon">🎵</div><div class="onboarding-step-text"><div class="onboarding-step-title">1. Загрузка треков</div><div class="onboarding-step-desc">Нажмите на пластинку <b>Deck A</b> или <b>Deck B</b>. Выберите MP3/WAV/OGG. BPM определится автоматически.</div></div></div>
       <div class="onboarding-step"><div class="onboarding-step-icon">▶️</div><div class="onboarding-step-text"><div class="onboarding-step-title">2. Воспроизведение</div><div class="onboarding-step-desc"><b>Play/Pause</b> — запуск/остановка. <b>Loop</b> — зацикливание. Фейдеры — громкость канала.</div></div></div>
-      <div class="onboarding-step"><div class="onboarding-step-icon">️</div><div class="onboarding-step-text"><div class="onboarding-step-title">3. Эквалайзер</div><div class="onboarding-step-desc"><b>Trbl</b> — высокие частоты. <b>Bass</b> — низкие. <b>Delay</b> — эхо. <b>INV</b> — реверс трека.</div></div></div>
+      <div class="onboarding-step"><div class="onboarding-step-icon">🎛️</div><div class="onboarding-step-text"><div class="onboarding-step-title">3. Эквалайзер</div><div class="onboarding-step-desc"><b>Trbl</b> — высокие частоты. <b>Bass</b> — низкие. <b>Delay</b> — эхо. <b>INV</b> — реверс трека.</div></div></div>
       <div class="onboarding-step"><div class="onboarding-step-icon">🔄</div><div class="onboarding-step-text"><div class="onboarding-step-title">4. Синхронизация</div><div class="onboarding-step-desc"><b>SYNC</b> — подстраивает BPM второго трека под первый. <b>⇄</b> — обмен треками между деками.</div></div></div>
       <div class="onboarding-step"><div class="onboarding-step-icon">🎙️</div><div class="onboarding-step-text"><div class="onboarding-step-title">5. Запись микса</div><div class="onboarding-step-desc"><b>REC MIX</b> — запись микса в MP3. Файл сохранится на устройстве.</div></div></div>
     </div>
@@ -177,7 +236,7 @@ body.mobile-landscape .console{
     <div class="info-section">
       <div class="info-section-title">🎵 ЗАГРУЗКА ТРЕКОВ</div>
       <div class="info-section-text">
-        • Нажмите на <b>пластинку Deck A</b> (левая) или <b>Deck B</b> (правая)<br>
+        • Нажмите на <b>пластинку Deck A</b> или <b>Deck B</b><br>
         • В открывшемся окне выберите аудиофайл (MP3, WAV, OGG, FLAC)<br>
         • После загрузки BPM определится автоматически и отобразится под названием трека<br>
         • Можно загрузить два разных трека для микширования
@@ -189,7 +248,7 @@ body.mobile-landscape .console{
       <div class="info-section-text">
         • <b>Кнопка Play/Pause (▶/❚❚)</b> — первое нажатие запускает трек, второе ставит на паузу<br>
         • <b>Кнопка Loop (🔁)</b> — включает зацикливание трека (повтор с начала после окончания)<br>
-        • <b>Фейдеры громкости</b> (вертикальные ползунки в центре) — регулируют громкость каждого канала от 0 до 100%<br>
+        • <b>Фейдеры громкости</b> — регулируют громкость каждого канала от 0 до 100%<br>
         • Индикатор VU-meter показывает уровень сигнала в реальном времени
       </div>
     </div>
@@ -197,40 +256,36 @@ body.mobile-landscape .console{
     <div class="info-section">
       <div class="info-section-title">🎛️ ЭКВАЛАЙЗЕР И ЭФФЕКТЫ</div>
       <div class="info-section-text">
-        • <b>Trbl (Treble)</b> — регулировка высоких частот от -24 до +24 dB. Увеличение добавляет яркость и чёткость<br>
-        • <b>Bass</b> — регулировка низких частот от -24 до +24 dB. Увеличение добавляет глубину и мощь<br>
-        • <b>Delay</b> — эффект эха от 0 до 1000 мс. Создаёт повторяющиеся затухающие копии звука<br>
-        • <b>INV (Invert)</b> — инвертирует фазу трека (реверс). Полезно для создания эффектов и сведения<br>
-        • На мобильных устройствах эквалайзер доступен на краях экрана (вертикальные слайдеры)
+        • <b>Trbl (Treble)</b> — регулировка высоких частот от -24 до +24 dB<br>
+        • <b>Bass</b> — регулировка низких частот от -24 до +24 dB<br>
+        • <b>Delay</b> — эффект эха от 0 до 1000 мс<br>
+        • <b>INV (Invert)</b> — инвертирует фазу трека (реверс)
       </div>
     </div>
     
     <div class="info-section">
       <div class="info-section-title">🔄 СИНХРОНИЗАЦИЯ И ОБМЕН</div>
       <div class="info-section-text">
-        • <b>SYNC</b> — автоматически определяет BPM обоих треков и подстраивает второй под первый. Оба трека будут играть в одном темпе<br>
-        • <b>⇄ (Swap)</b> — меняет треки между деками местами. Если один трек играет, он продолжит играть на новом деке<br>
-        • После SYNC второй трек замедлится или ускорится для совпадения темпа
+        • <b>SYNC</b> — автоматически определяет BPM обоих треков и подстраивает второй под первый<br>
+        • <b>⇄ (Swap)</b> — меняет треки между деками местами
       </div>
     </div>
     
     <div class="info-section">
       <div class="info-section-title">🎙️ ЗАПИСЬ МИКСА</div>
       <div class="info-section-text">
-        • <b>REC MIX</b> — начинает запись всего микса (оба канала + эффекты) в формате MP3<br>
+        • <b>REC MIX</b> — начинает запись всего микса в формате MP3<br>
         • Во время записи кнопка становится красной и показывает таймер<br>
-        • Повторное нажатие останавливает запись и сохраняет файл на устройство<br>
-        • Файл автоматически скачивается или открывается меню "Поделиться" на мобильных
+        • Повторное нажатие останавливает запись и сохраняет файл на устройство
       </div>
     </div>
     
     <div class="info-section">
       <div class="info-section-title">📱 МОБИЛЬНАЯ ВЕРСИЯ</div>
       <div class="info-section-text">
-        • Приложение работает только в <b>альбомной (горизонтальной)</b> ориентации<br>
-        • Если телефон в портретной — появится просьба повернуть устройство<br>
-        • Интерфейс — точная уменьшенная копия ПК-версии<br>
-        • Все функции доступны как на ПК, так и на мобильных устройствах
+        • В <b>портретной</b> ориентации все блоки умещаются на одном экране без прокрутки<br>
+        • В <b>альбомной</b> ориентации интерфейс выглядит как уменьшенная копия ПК-версии<br>
+        • Все функции доступны на любых устройствах, включая iOS
       </div>
     </div>
     
@@ -241,16 +296,13 @@ body.mobile-landscape .console{
         • Используйте SYNC для автоматической синхронизации темпа<br>
         • Плавно меняйте громкость фейдерами для перехода между треками<br>
         • Экспериментируйте с эквалайзером для создания уникального звучания<br>
-        • Delay добавляет пространство и глубину, но не переусердствуйте<br>
-        • Записывайте лучшие миксы через REC MIX для сохранения
+        • Записывайте лучшие миксы через REC MIX
       </div>
     </div>
     
     <button class="info-close-btn" onclick="closeInfoModal()">Понятно, начать микширование</button>
   </div>
 </div>
-
-<div class="rotate-overlay" id="rotateOverlay"><div class="rotate-icon">📱</div><div class="rotate-text">Поверните телефон</div></div>
 
 <div class="console">
   <div class="header">
@@ -386,8 +438,7 @@ function closeOnboarding(){localStorage.setItem('djbox_onboarded','true');docume
 function openInfoModal(){document.getElementById('infoModal').classList.add('active')}
 function closeInfoModal(){document.getElementById('infoModal').classList.remove('active')}
 
-/* Автоматический подбор масштаба: консоль рисуется как на ПК (минимум 1000x520)
-   и равномерно уменьшается, чтобы целиком поместиться в экран телефона */
+/* Автоподбор масштаба только для альбомной ориентации на мобильных (копия ПК) */
 function updateMobileScale(){
   const isMobile=window.innerWidth<=899;
   const isLandscape=window.matchMedia('(orientation: landscape)').matches;
@@ -405,7 +456,10 @@ function updateOrientation(){
   const isMobile=window.innerWidth<=899;
   const isLandscape=window.matchMedia('(orientation: landscape)').matches;
   document.body.classList.remove('mobile-portrait','mobile-landscape');
-  if(isMobile){document.body.classList.add(isLandscape?'mobile-landscape':'mobile-portrait');updateMobileScale()}
+  if(isMobile){
+    document.body.classList.add(isLandscape?'mobile-landscape':'mobile-portrait');
+    updateMobileScale();
+  }
 }
 window.addEventListener('resize',updateOrientation);
 window.addEventListener('orientationchange',()=>{setTimeout(updateOrientation,100)});
@@ -624,9 +678,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   initVK();
   startAdTimer();
   setStatus('Ready • Load Tracks to Begin');
-  if(screen.orientation&&screen.orientation.lock){screen.orientation.lock('landscape').catch(()=>{})}
 });
-document.addEventListener('click',function lockOrientation(){if(screen.orientation&&screen.orientation.lock){screen.orientation.lock('landscape').catch(()=>{})}document.removeEventListener('click',lockOrientation)},{once:true});
 </script>
 </body>
 </html>
