@@ -120,7 +120,6 @@ input[type=file]{display:none}
 .onboarding-btn:hover{background:var(--blue-bright)}
 .onboarding-btn:active{transform:scale(.98)}
 
-/* Модальное окно INFO */
 .info-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.95);z-index:10001;display:none;align-items:center;justify-content:center;padding:20px}
 .info-modal.active{display:flex}
 .info-modal-content{max-width:600px;width:100%;max-height:85vh;background:rgba(20,20,20,.98);backdrop-filter:blur(20px);border:1px solid var(--white-15);border-radius:var(--radius-lg);padding:24px;overflow-y:auto}
@@ -133,30 +132,14 @@ input[type=file]{display:none}
 .info-close-btn{width:100%;padding:12px;background:var(--blue);border:none;border-radius:var(--radius-md);color:var(--white);font-size:13px;font-weight:600;cursor:pointer;margin-top:16px}
 .info-close-btn:hover{background:var(--blue-bright)}
 
-/* === МОБИЛЬНАЯ ВЕРСИЯ — ПОРТРЕТ (и iOS): всё умещается на одном экране БЕЗ прокрутки === */
 body.mobile-portrait{--fader-length:64px;--fader-gap:6px;--turntable-size:76px;--inv-height:44px}
-body.mobile-portrait .console{
-  overflow:hidden;gap:6px;
-  padding-top:max(6px, env(safe-area-inset-top));
-  padding-bottom:max(6px, env(safe-area-inset-bottom));
-  padding-left:6px;padding-right:6px;
-}
+body.mobile-portrait .console{overflow:hidden;gap:6px;padding-top:max(6px, env(safe-area-inset-top));padding-bottom:max(6px, env(safe-area-inset-bottom));padding-left:6px;padding-right:6px}
 body.mobile-portrait .header{padding:4px 10px}
 body.mobile-portrait .logo{font-size:12px;left:10px}
 body.mobile-portrait .rec-btn{padding:4px 10px;font-size:9px;gap:4px}
 body.mobile-portrait .rec-dot{width:5px;height:5px}
 body.mobile-portrait .main{flex-direction:column;flex:1 1 auto;min-height:0;height:auto;gap:6px}
-body.mobile-portrait .deck{
-  flex:1 1 0;min-height:0;padding:6px;gap:4px;
-  display:grid;
-  grid-template-columns:auto 1fr auto;
-  grid-template-areas:
-    "label label label"
-    "turn info controls"
-    "turn time controls"
-    "eq eq eq";
-  align-items:center;
-}
+body.mobile-portrait .deck{flex:1 1 0;min-height:0;padding:6px;gap:4px;display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"label label label" "turn info controls" "turn time controls" "eq eq eq";align-items:center}
 body.mobile-portrait .deck-label{grid-area:label;justify-self:center;font-size:8px;padding:1px 8px}
 body.mobile-portrait .turntable{grid-area:turn}
 body.mobile-portrait .tonearm{height:30px;width:2px;top:4px;right:4px}
@@ -191,26 +174,9 @@ body.mobile-portrait .sync-btn{width:44px;height:44px;font-size:8px}
 body.mobile-portrait .sync-btn::before{top:3px;left:3px;right:3px;bottom:3px}
 body.mobile-portrait .vu-meter{flex-basis:100%;order:10;height:4px}
 body.mobile-portrait .status{font-size:8px;padding:3px 8px}
-/* компактный режим для невысоких экранов */
-@media (max-height:640px){
-  body.mobile-portrait{--turntable-size:64px;--fader-length:52px;--inv-height:38px}
-  body.mobile-portrait .play-btn{width:36px;height:36px;font-size:13px}
-  body.mobile-portrait .loop-btn{width:28px;height:28px;font-size:11px}
-  body.mobile-portrait .sync-btn{width:38px;height:38px}
-  body.mobile-portrait .bpm-display{font-size:12px}
-  body.mobile-portrait .eq-panel{padding:3px 6px}
-  body.mobile-portrait .eq-sliders{gap:3px}
-  body.mobile-portrait .swap-btn{width:32px;height:32px}
-}
+@media (max-height:640px){body.mobile-portrait{--turntable-size:64px;--fader-length:52px;--inv-height:38px}body.mobile-portrait .play-btn{width:36px;height:36px;font-size:13px}body.mobile-portrait .loop-btn{width:28px;height:28px;font-size:11px}body.mobile-portrait .sync-btn{width:38px;height:38px}body.mobile-portrait .bpm-display{font-size:12px}body.mobile-portrait .eq-panel{padding:3px 6px}body.mobile-portrait .eq-sliders{gap:3px}body.mobile-portrait .swap-btn{width:32px;height:32px}}
 
-/* === МОБИЛЬНАЯ ВЕРСИЯ — АЛЬБОМНАЯ (если пользователь сам повернул): копия ПК, уменьшенная пропорционально === */
-body.mobile-landscape .console{
-  transform:scale(var(--mscale,.7));
-  transform-origin:0 0;
-  width:var(--msw,142.86vw);
-  height:var(--msh,142.86vh);
-  padding:8px;gap:8px;
-}
+body.mobile-landscape .console{transform:scale(var(--mscale,.7));transform-origin:0 0;width:var(--msw,142.86vw);height:var(--msh,142.86vh);padding:8px;gap:8px}
 </style>
 </head>
 <body>
@@ -219,7 +185,7 @@ body.mobile-landscape .console{
     <div class="onboarding-title">DJ BOX <span>PRO</span></div>
     <div class="onboarding-subtitle">Профессиональный DJ-микшер</div>
     <div class="onboarding-steps">
-      <div class="onboarding-step"><div class="onboarding-step-icon">🎵</div><div class="onboarding-step-text"><div class="onboarding-step-title">1. Загрузка треков</div><div class="onboarding-step-desc">Нажмите на пластинку <b>Deck A</b> или <b>Deck B</b>. Выберите MP3/WAV/OGG. BPM определится автоматически.</div></div></div>
+      <div class="onboarding-step"><div class="onboarding-step-icon">🎵</div><div class="onboarding-step-text"><div class="onboarding-step-title">1. Загрузка треков</div><div class="onboarding-step-desc">Нажмите на пластинку <b>Deck A</b> или <b>Deck B</b>. Выберите MP3/WAV. BPM определится автоматически.</div></div></div>
       <div class="onboarding-step"><div class="onboarding-step-icon">▶️</div><div class="onboarding-step-text"><div class="onboarding-step-title">2. Воспроизведение</div><div class="onboarding-step-desc"><b>Play/Pause</b> — запуск/остановка. <b>Loop</b> — зацикливание. Фейдеры — громкость канала.</div></div></div>
       <div class="onboarding-step"><div class="onboarding-step-icon">🎛️</div><div class="onboarding-step-text"><div class="onboarding-step-title">3. Эквалайзер</div><div class="onboarding-step-desc"><b>Trbl</b> — высокие частоты. <b>Bass</b> — низкие. <b>Delay</b> — эхо. <b>INV</b> — реверс трека.</div></div></div>
       <div class="onboarding-step"><div class="onboarding-step-icon">🔄</div><div class="onboarding-step-text"><div class="onboarding-step-title">4. Синхронизация</div><div class="onboarding-step-desc"><b>SYNC</b> — подстраивает BPM второго трека под первый. <b>⇄</b> — обмен треками между деками.</div></div></div>
@@ -237,7 +203,7 @@ body.mobile-landscape .console{
       <div class="info-section-title">🎵 ЗАГРУЗКА ТРЕКОВ</div>
       <div class="info-section-text">
         • Нажмите на <b>пластинку Deck A</b> или <b>Deck B</b><br>
-        • В открывшемся окне выберите аудиофайл (MP3, WAV, OGG, FLAC)<br>
+        • В открывшемся окне выберите аудиофайл (MP3, WAV)<br>
         • После загрузки BPM определится автоматически и отобразится под названием трека<br>
         • Можно загрузить два разных трека для микширования
       </div>
@@ -332,7 +298,7 @@ body.mobile-landscape .console{
       <div class="info-display"><div class="track-name" id="name1">— NO TRACK —</div><div class="bpm-display" id="bpm1">---.-</div></div>
       <div class="time-display"><div class="time-text" id="time1">00:00 / 00:00</div></div>
       <div class="controls-row"><button class="play-btn" id="play1" onclick="togglePlay(1)" disabled>▶</button><button class="loop-btn" id="loop1" onclick="toggleLoop(1)" disabled>🔁</button></div>
-      <input type="file" id="file1" accept="audio/*" onchange="loadTrack(1,this)">
+      <input type="file" id="file1" accept="audio/mpeg,audio/mp4,audio/aac,audio/wav" onchange="loadTrack(1,this)">
     </div>
 
     <div class="mixer">
@@ -361,7 +327,7 @@ body.mobile-landscape .console{
       <div class="info-display"><div class="track-name" id="name2">— NO TRACK —</div><div class="bpm-display" id="bpm2">---.-</div></div>
       <div class="time-display"><div class="time-text" id="time2">00:00 / 00:00</div></div>
       <div class="controls-row"><button class="play-btn" id="play2" onclick="togglePlay(2)" disabled>▶</button><button class="loop-btn" id="loop2" onclick="toggleLoop(2)" disabled>🔁</button></div>
-      <input type="file" id="file2" accept="audio/*" onchange="loadTrack(2,this)">
+      <input type="file" id="file2" accept="audio/mpeg,audio/mp4,audio/aac,audio/wav" onchange="loadTrack(2,this)">
     </div>
 
     <div class="edge-eq">
@@ -386,6 +352,10 @@ let isRecording=false,mixRecorder=null,mixStreamDest=null,mixChunks=[],recStartT
 let vkReady=false;
 let adReady=false;
 let adIntervalId=null;
+
+// Проверка мобильного устройства
+const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
 function initVK(){
   if(!window.vkBridge)return;
@@ -438,9 +408,7 @@ function closeOnboarding(){localStorage.setItem('djbox_onboarded','true');docume
 function openInfoModal(){document.getElementById('infoModal').classList.add('active')}
 function closeInfoModal(){document.getElementById('infoModal').classList.remove('active')}
 
-/* Автоподбор масштаба только для альбомной ориентации на мобильных (копия ПК) */
 function updateMobileScale(){
-  const isMobile=window.innerWidth<=899;
   const isLandscape=window.matchMedia('(orientation: landscape)').matches;
   if(!isMobile||!isLandscape)return;
   const DESIGN_W=1000,DESIGN_H=520;
@@ -453,7 +421,6 @@ function updateMobileScale(){
 }
 
 function updateOrientation(){
-  const isMobile=window.innerWidth<=899;
   const isLandscape=window.matchMedia('(orientation: landscape)').matches;
   document.body.classList.remove('mobile-portrait','mobile-landscape');
   if(isMobile){
@@ -465,14 +432,48 @@ window.addEventListener('resize',updateOrientation);
 window.addEventListener('orientationchange',()=>{setTimeout(updateOrientation,100)});
 
 function initAudio(){
-  if(!audioCtx){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return false}
-    masterGain=audioCtx.createGain();masterGain.gain.value=0.8;
-    analyser=audioCtx.createAnalyser();analyser.fftSize=256;
-    masterGain.connect(analyser);analyser.connect(audioCtx.destination);
-    startVUMeter();startTimeUpdater()}
-  if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});
-  return true
+  if(!audioCtx){
+    try{
+      audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    }catch(e){
+      setStatus('Audio Error: ' + e.message);
+      return false;
+    }
+    masterGain=audioCtx.createGain();
+    masterGain.gain.value=0.8;
+    analyser=audioCtx.createAnalyser();
+    analyser.fftSize=256;
+    masterGain.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    startVUMeter();
+    startTimeUpdater();
+  }
+  if(audioCtx.state==='suspended'){
+    audioCtx.resume().catch(e=>{
+      setStatus('Audio Resume Error');
+    });
+  }
+  return true;
 }
+
+// Запуск AudioContext при касании (для iOS)
+document.addEventListener('touchstart', () => {
+  if (!audioCtx) {
+    initAudio();
+  } else if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+}, { once: true });
+
+// Также при клике на любой элемент
+document.addEventListener('click', () => {
+  if (!audioCtx) {
+    initAudio();
+  } else if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+});
+
 function startVUMeter(){const bl=analyser.frequencyBinCount,da=new Uint8Array(bl),vf=document.getElementById('vuFill');(function u(){analyser.getByteFrequencyData(da);let s=0;for(let i=0;i<bl;i++)s+=da[i];vf.style.width=Math.min(100,(s/bl/128)*100)+'%';vuAnimId=requestAnimationFrame(u)})()}
 function startTimeUpdater(){(function u(){for(let n=1;n<=2;n++){const d=decks[n];if(!d.buffer)continue;const td=d.buffer.duration;let ct=d.playing?Math.max(0,audioCtx.currentTime-d.startTime):d.pauseOffset;if(d.loop&&ct>=td)ct=ct%td;ct=Math.max(0,Math.min(td,ct));document.getElementById('time'+n).textContent=String(Math.floor(ct/60)).padStart(2,'0')+':'+String(Math.floor(ct%60)).padStart(2,'0')+' / '+String(Math.floor(td/60)).padStart(2,'0')+':'+String(Math.floor(td%60)).padStart(2,'0')}timeUpdateId=requestAnimationFrame(u)})()}
 
@@ -518,23 +519,85 @@ function buildAudioChain(n){
   }catch(e){return false}
 }
 
-async function loadTrack(n,input){
-  const f=input.files[0];if(!f)return;if(!initAudio())return;
-  setStatus('Loading Deck '+(n===1?'A':'B')+'…');
-  try{
-    const ab=await audioCtx.decodeAudioData(await f.arrayBuffer());
-    const d=decks[n];
-    d.buffer=ab;d.reversedBuffer=reverseBuffer(ab);d.pauseOffset=0;d.playing=false;d.inverted=false;d.chainBuilt=false;
+// Декодирование с повторной попыткой (для мобильных)
+async function decodeWithRetry(arrayBuffer, attempts = 3) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await audioCtx.decodeAudioData(arrayBuffer);
+    } catch (e) {
+      if (i === attempts - 1) throw e;
+      await new Promise(r => setTimeout(r, 200 * (i + 1)));
+    }
+  }
+}
+
+async function loadTrack(n, input){
+  const f = input.files[0];
+  if (!f) return;
+
+  // Проверка размера для мобильных
+  if (isMobile && f.size > 15 * 1024 * 1024) {
+    setStatus('Файл слишком большой для мобильного (>15MB)');
+    input.value = '';
+    return;
+  }
+
+  if (!initAudio()) {
+    setStatus('Ошибка инициализации аудио');
+    input.value = '';
+    return;
+  }
+
+  setStatus('Загрузка ' + (n===1?'A':'B') + '...');
+  
+  try {
+    const arrayBuffer = await f.arrayBuffer();
+    
+    // Очистка старых данных перед декодированием
+    const d = decks[n];
+    if (d.buffer) {
+      d.buffer = null;
+      d.reversedBuffer = null;
+    }
+    
+    const ab = await decodeWithRetry(arrayBuffer);
+    
+    d.buffer = ab;
+    d.reversedBuffer = reverseBuffer(ab);
+    d.pauseOffset = 0;
+    d.playing = false;
+    d.inverted = false;
+    d.chainBuilt = false;
+    
     document.getElementById('invert'+n).classList.remove('active');
-    const ie=document.getElementById('invert'+n+'e');if(ie)ie.classList.remove('active');
-    if(!buildAudioChain(n)){setStatus('Chain Failed');return}
-    d.bpm=detectBPM(ab);d.peakOffset=findFirstPeak(ab);
-    document.getElementById('name'+n).textContent=f.name;
-    document.getElementById('bpm'+n).textContent=d.bpm>0?d.bpm.toFixed(1):'---.-';
-    const pb=document.getElementById('play'+n);pb.disabled=false;pb.textContent='▶';pb.classList.remove('active');
-    document.getElementById('loop'+n).disabled=false;
-    setStatus('Deck '+(n===1?'A':'B')+' Loaded'+(d.bpm>0?' • '+d.bpm.toFixed(1)+' BPM':''));
-  }catch(e){setStatus('Load Error')}
+    const ie = document.getElementById('invert'+n+'e');
+    if(ie) ie.classList.remove('active');
+    
+    if(!buildAudioChain(n)){
+      setStatus('Ошибка сборки цепочки');
+      input.value = '';
+      return;
+    }
+    
+    d.bpm = detectBPM(ab);
+    d.peakOffset = findFirstPeak(ab);
+    
+    document.getElementById('name'+n).textContent = f.name;
+    document.getElementById('bpm'+n).textContent = d.bpm > 0 ? d.bpm.toFixed(1) : '---.-';
+    
+    const pb = document.getElementById('play'+n);
+    pb.disabled = false;
+    pb.textContent = '▶';
+    pb.classList.remove('active');
+    document.getElementById('loop'+n).disabled = false;
+    
+    setStatus('Deck '+(n===1?'A':'B')+' загружен'+(d.bpm>0?' • '+d.bpm.toFixed(1)+' BPM':''));
+    
+  } catch(e){
+    console.error('Load error:', e);
+    setStatus('Ошибка: ' + (e.message || 'неизвестная'));
+    input.value = '';
+  }
 }
 
 function startSource(n,offset){
