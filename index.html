@@ -298,7 +298,7 @@ body.mobile-landscape .console{transform:scale(var(--mscale,.7));transform-origi
       <div class="info-display"><div class="track-name" id="name1">— NO TRACK —</div><div class="bpm-display" id="bpm1">---.-</div></div>
       <div class="time-display"><div class="time-text" id="time1">00:00 / 00:00</div></div>
       <div class="controls-row"><button class="play-btn" id="play1" onclick="togglePlay(1)" disabled>▶</button><button class="loop-btn" id="loop1" onclick="toggleLoop(1)" disabled>🔁</button></div>
-      <input type="file" id="file1" accept="audio/mpeg,audio/mp4,audio/aac,audio/wav" onchange="loadTrack(1,this)">
+      <input type="file" id="file1" accept="audio/mpeg,audio/mp3,audio/mp4,audio/aac,audio/wav" onchange="loadTrack(1,this)">
     </div>
 
     <div class="mixer">
@@ -327,7 +327,7 @@ body.mobile-landscape .console{transform:scale(var(--mscale,.7));transform-origi
       <div class="info-display"><div class="track-name" id="name2">— NO TRACK —</div><div class="bpm-display" id="bpm2">---.-</div></div>
       <div class="time-display"><div class="time-text" id="time2">00:00 / 00:00</div></div>
       <div class="controls-row"><button class="play-btn" id="play2" onclick="togglePlay(2)" disabled>▶</button><button class="loop-btn" id="loop2" onclick="toggleLoop(2)" disabled>🔁</button></div>
-      <input type="file" id="file2" accept="audio/mpeg,audio/mp4,audio/aac,audio/wav" onchange="loadTrack(2,this)">
+      <input type="file" id="file2" accept="audio/mpeg,audio/mp3,audio/mp4,audio/aac,audio/wav" onchange="loadTrack(2,this)">
     </div>
 
     <div class="edge-eq">
@@ -431,52 +431,135 @@ function updateOrientation(){
 window.addEventListener('resize',updateOrientation);
 window.addEventListener('orientationchange',()=>{setTimeout(updateOrientation,100)});
 
-function initAudio(){
-  if(!audioCtx){
-    try{
-      audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-    }catch(e){
+// ===== ИСПРАВЛЕННАЯ АСИНХРОННАЯ ИНИЦИАЛИЗАЦИЯ AUDIO =====
+async function initAudio() {
+  if (!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.8;
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      masterGain.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      startVUMeter();
+      startTimeUpdater();
+    } catch (e) {
       setStatus('Audio Error: ' + e.message);
+      console.error('initAudio error:', e);
       return false;
     }
-    masterGain=audioCtx.createGain();
-    masterGain.gain.value=0.8;
-    analyser=audioCtx.createAnalyser();
-    analyser.fftSize=256;
-    masterGain.connect(analyser);
-    analyser.connect(audioCtx.destination);
-    startVUMeter();
-    startTimeUpdater();
   }
-  if(audioCtx.state==='suspended'){
-    audioCtx.resume().catch(e=>{
-      setStatus('Audio Resume Error');
-    });
+  // Если контекст приостановлен – возобновляем и ждём
+  if (audioCtx.state === 'suspended') {
+    try {
+      await audioCtx.resume();
+    } catch (e) {
+      setStatus('Resume Error: ' + e.message);
+      console.error('resume error:', e);
+      return false;
+    }
+  }
+  // Проверяем, что контекст действительно running
+  if (audioCtx.state !== 'running') {
+    setStatus('Audio context not running');
+    return false;
   }
   return true;
 }
 
-// Запуск AudioContext при касании (для iOS)
-document.addEventListener('touchstart', () => {
-  if (!audioCtx) {
-    initAudio();
-  } else if (audioCtx.state === 'suspended') {
-    audioCtx.resume().catch(() => {});
+// Обновлённый decodeWithRetry с проверкой состояния перед каждой попыткой
+async function decodeWithRetry(arrayBuffer, attempts = 3) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      // Убедимся, что контекст в состоянии running перед декодированием
+      if (audioCtx.state !== 'running') {
+        await audioCtx.resume();
+      }
+      return await audioCtx.decodeAudioData(arrayBuffer);
+    } catch (e) {
+      console.warn(`decodeWithRetry attempt ${i+1} failed:`, e.message);
+      if (i === attempts - 1) throw e;
+      // Пауза перед следующей попыткой
+      await new Promise(r => setTimeout(r, 300 * (i + 1)));
+    }
   }
-}, { once: true });
+}
 
-// Также при клике на любой элемент
-document.addEventListener('click', () => {
-  if (!audioCtx) {
-    initAudio();
-  } else if (audioCtx.state === 'suspended') {
-    audioCtx.resume().catch(() => {});
+// Обновлённая функция загрузки трека
+async function loadTrack(n, input){
+  const f = input.files[0];
+  if (!f) return;
+
+  // Мягкое ограничение размера – снижено до 10 МБ для мобильных
+  if (isMobile && f.size > 10 * 1024 * 1024) {
+    setStatus('Файл слишком большой для мобильного (>10MB)');
+    console.warn('File size exceeded:', f.size);
+    input.value = '';
+    return;
   }
-});
 
-function startVUMeter(){const bl=analyser.frequencyBinCount,da=new Uint8Array(bl),vf=document.getElementById('vuFill');(function u(){analyser.getByteFrequencyData(da);let s=0;for(let i=0;i<bl;i++)s+=da[i];vf.style.width=Math.min(100,(s/bl/128)*100)+'%';vuAnimId=requestAnimationFrame(u)})()}
-function startTimeUpdater(){(function u(){for(let n=1;n<=2;n++){const d=decks[n];if(!d.buffer)continue;const td=d.buffer.duration;let ct=d.playing?Math.max(0,audioCtx.currentTime-d.startTime):d.pauseOffset;if(d.loop&&ct>=td)ct=ct%td;ct=Math.max(0,Math.min(td,ct));document.getElementById('time'+n).textContent=String(Math.floor(ct/60)).padStart(2,'0')+':'+String(Math.floor(ct%60)).padStart(2,'0')+' / '+String(Math.floor(td/60)).padStart(2,'0')+':'+String(Math.floor(td%60)).padStart(2,'0')}timeUpdateId=requestAnimationFrame(u)})()}
+  // Дожидаемся запуска AudioContext
+  const ok = await initAudio();
+  if (!ok) {
+    setStatus('Не удалось запустить аудио');
+    input.value = '';
+    return;
+  }
 
+  setStatus('Загрузка ' + (n===1?'A':'B') + '...');
+  try {
+    const arrayBuffer = await f.arrayBuffer();
+    
+    // Очистка старых данных
+    const d = decks[n];
+    if (d.buffer) {
+      d.buffer = null;
+      d.reversedBuffer = null;
+    }
+    
+    // Декодируем с повторными попытками
+    const ab = await decodeWithRetry(arrayBuffer);
+    
+    d.buffer = ab;
+    d.reversedBuffer = reverseBuffer(ab);
+    d.pauseOffset = 0;
+    d.playing = false;
+    d.inverted = false;
+    d.chainBuilt = false;
+    
+    document.getElementById('invert'+n).classList.remove('active');
+    const ie = document.getElementById('invert'+n+'e');
+    if(ie) ie.classList.remove('active');
+    
+    if(!buildAudioChain(n)){
+      setStatus('Ошибка сборки цепочки');
+      input.value = '';
+      return;
+    }
+    
+    d.bpm = detectBPM(ab);
+    d.peakOffset = findFirstPeak(ab);
+    
+    document.getElementById('name'+n).textContent = f.name;
+    document.getElementById('bpm'+n).textContent = d.bpm > 0 ? d.bpm.toFixed(1) : '---.-';
+    
+    const pb = document.getElementById('play'+n);
+    pb.disabled = false;
+    pb.textContent = '▶';
+    pb.classList.remove('active');
+    document.getElementById('loop'+n).disabled = false;
+    
+    setStatus('Deck '+(n===1?'A':'B')+' загружен'+(d.bpm>0?' • '+d.bpm.toFixed(1)+' BPM':''));
+    
+  } catch(e){
+    console.error('Load error:', e);
+    setStatus('Ошибка: ' + (e.message || 'неизвестная'));
+    input.value = '';
+  }
+}
+
+// Остальные функции без изменений (они уже корректны)
 function reverseBuffer(b){const r=audioCtx.createBuffer(b.numberOfChannels,b.length,b.sampleRate);for(let c=0;c<b.numberOfChannels;c++){const s=b.getChannelData(c),d=r.getChannelData(c);for(let i=0;i<s.length;i++)d[i]=s[s.length-1-i]}return r}
 
 function buildAudioChain(n){
@@ -517,87 +600,6 @@ function buildAudioChain(n){
     d.channelGain.connect(masterGain);
     d.chainBuilt=true;return true
   }catch(e){return false}
-}
-
-// Декодирование с повторной попыткой (для мобильных)
-async function decodeWithRetry(arrayBuffer, attempts = 3) {
-  for (let i = 0; i < attempts; i++) {
-    try {
-      return await audioCtx.decodeAudioData(arrayBuffer);
-    } catch (e) {
-      if (i === attempts - 1) throw e;
-      await new Promise(r => setTimeout(r, 200 * (i + 1)));
-    }
-  }
-}
-
-async function loadTrack(n, input){
-  const f = input.files[0];
-  if (!f) return;
-
-  // Проверка размера для мобильных
-  if (isMobile && f.size > 15 * 1024 * 1024) {
-    setStatus('Файл слишком большой для мобильного (>15MB)');
-    input.value = '';
-    return;
-  }
-
-  if (!initAudio()) {
-    setStatus('Ошибка инициализации аудио');
-    input.value = '';
-    return;
-  }
-
-  setStatus('Загрузка ' + (n===1?'A':'B') + '...');
-  
-  try {
-    const arrayBuffer = await f.arrayBuffer();
-    
-    // Очистка старых данных перед декодированием
-    const d = decks[n];
-    if (d.buffer) {
-      d.buffer = null;
-      d.reversedBuffer = null;
-    }
-    
-    const ab = await decodeWithRetry(arrayBuffer);
-    
-    d.buffer = ab;
-    d.reversedBuffer = reverseBuffer(ab);
-    d.pauseOffset = 0;
-    d.playing = false;
-    d.inverted = false;
-    d.chainBuilt = false;
-    
-    document.getElementById('invert'+n).classList.remove('active');
-    const ie = document.getElementById('invert'+n+'e');
-    if(ie) ie.classList.remove('active');
-    
-    if(!buildAudioChain(n)){
-      setStatus('Ошибка сборки цепочки');
-      input.value = '';
-      return;
-    }
-    
-    d.bpm = detectBPM(ab);
-    d.peakOffset = findFirstPeak(ab);
-    
-    document.getElementById('name'+n).textContent = f.name;
-    document.getElementById('bpm'+n).textContent = d.bpm > 0 ? d.bpm.toFixed(1) : '---.-';
-    
-    const pb = document.getElementById('play'+n);
-    pb.disabled = false;
-    pb.textContent = '▶';
-    pb.classList.remove('active');
-    document.getElementById('loop'+n).disabled = false;
-    
-    setStatus('Deck '+(n===1?'A':'B')+' загружен'+(d.bpm>0?' • '+d.bpm.toFixed(1)+' BPM':''));
-    
-  } catch(e){
-    console.error('Load error:', e);
-    setStatus('Ошибка: ' + (e.message || 'неизвестная'));
-    input.value = '';
-  }
 }
 
 function startSource(n,offset){
@@ -714,6 +716,9 @@ function updateVolume(n){
   d.channelGain.gain.value=v/100;
   document.getElementById('volVal'+n).textContent=Math.round(v)
 }
+
+function startVUMeter(){const bl=analyser.frequencyBinCount,da=new Uint8Array(bl),vf=document.getElementById('vuFill');(function u(){analyser.getByteFrequencyData(da);let s=0;for(let i=0;i<bl;i++)s+=da[i];vf.style.width=Math.min(100,(s/bl/128)*100)+'%';vuAnimId=requestAnimationFrame(u)})()}
+function startTimeUpdater(){(function u(){for(let n=1;n<=2;n++){const d=decks[n];if(!d.buffer)continue;const td=d.buffer.duration;let ct=d.playing?Math.max(0,audioCtx.currentTime-d.startTime):d.pauseOffset;if(d.loop&&ct>=td)ct=ct%td;ct=Math.max(0,Math.min(td,ct));document.getElementById('time'+n).textContent=String(Math.floor(ct/60)).padStart(2,'0')+':'+String(Math.floor(ct%60)).padStart(2,'0')+' / '+String(Math.floor(td/60)).padStart(2,'0')+':'+String(Math.floor(td%60)).padStart(2,'0')}timeUpdateId=requestAnimationFrame(u)})()}
 
 async function toggleRecording(){
   if(!initAudio())return;
