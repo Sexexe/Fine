@@ -765,5 +765,105 @@ document.addEventListener("pointerdown",()=>{if(AC&&AC.state==="suspended")AC.re
   renderVU(vuA,levelOf(D.A)); renderVU(vuB,levelOf(D.B));
 })();
 </script>
+
+<!-- ============ VK BRIDGE + МЕЖСТРАНИЧНАЯ РЕКЛАМА РАЗ В 15 МИНУТ ============ -->
+<script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+<script>
+(function(){
+  const AD_INTERVAL = 15 * 60 * 1000;   // 15 минут
+  const CHECK_EVERY = 5000;             // проверка каждые 5 секунд
+  const RETRY_NO_ADS = 60 * 1000;       // если рекламы нет, повтор через 1 минуту
+
+  const KEY_LAST = "djbox_vk_ad_last";
+  const KEY_TRY  = "djbox_vk_ad_try";
+
+  let showing = false;
+
+  function get(key){
+    try{
+      return Number(localStorage.getItem(key) || 0);
+    }catch(e){
+      return 0;
+    }
+  }
+
+  function set(key, value){
+    try{
+      localStorage.setItem(key, String(value));
+    }catch(e){}
+  }
+
+  function isRecording(){
+    try{
+      return typeof recorder !== "undefined" && recorder && recorder.state === "recording";
+    }catch(e){
+      return false;
+    }
+  }
+
+  async function showVkInterstitial(){
+    if (showing) return;
+
+    showing = true;
+    set(KEY_TRY, Date.now());
+
+    try{
+      if (!window.vkBridge || typeof window.vkBridge.send !== "function"){
+        return;
+      }
+
+      await window.vkBridge.send("VKWebAppInit").catch(() => {});
+
+      const check = await window.vkBridge.send("VKWebAppCheckNativeAds", {
+        ad_types: ["interstitial"]
+      }).catch(() => null);
+
+      if (check && check.interstitial === false){
+        return;
+      }
+
+      try{
+        await window.vkBridge.send("VKWebAppShowNativeAds", {
+          ad_type: "interstitial"
+        });
+
+        set(KEY_LAST, Date.now());
+      }catch(e){
+        // если реклама не показалась, попробуем позже
+      }
+
+    }finally{
+      showing = false;
+    }
+  }
+
+  function tick(){
+    const now = Date.now();
+
+    if (!get(KEY_LAST)){
+      set(KEY_LAST, now);
+      return;
+    }
+
+    if (now - get(KEY_LAST) < AD_INTERVAL){
+      return;
+    }
+
+    if (now - get(KEY_TRY) < RETRY_NO_ADS){
+      return;
+    }
+
+    if (isRecording()){
+      set(KEY_TRY, now);
+      return;
+    }
+
+    showVkInterstitial();
+  }
+
+  setInterval(tick, CHECK_EVERY);
+  setTimeout(tick, 1000);
+})();
+</script>
 </body>
 </html>
