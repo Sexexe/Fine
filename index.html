@@ -41,10 +41,9 @@ html,body{
   padding:8px;gap:8px;overflow:hidden;
 }
 
-/* === HEADER С ЦЕНТРАЛЬНОЙ КНОПКОЙ REC === */
 .header{
   display:flex;align-items:center;justify-content:center;
-  padding:12px 16px;
+  padding:10px 16px;
   background:linear-gradient(180deg, var(--panel-2) 0%, var(--panel) 100%);
   border:1px solid var(--border);border-radius:var(--radius);
   flex-shrink:0;position:relative;
@@ -80,7 +79,6 @@ html,body{
 .rec-dot{width:8px;height:8px;border-radius:50%;background:var(--blue-bright);box-shadow:0 0 8px var(--blue-glow);transition:all 0.3s}
 .rec-btn.recording .rec-dot{background:var(--white);box-shadow:0 0 12px var(--white)}
 
-/* === MAIN LAYOUT === */
 .main{flex:1;display:flex;flex-direction:row;gap:8px;min-height:0;height:100%}
 
 .deck{
@@ -307,7 +305,6 @@ html,body{
 }
 input[type=file]{display:none}
 
-/* === MODALS === */
 .onboarding-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px}
 .onboarding-overlay.hidden{display:none}
 .onboarding-content{max-width:500px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:30px 24px;max-height:90vh;overflow-y:auto}
@@ -336,50 +333,50 @@ input[type=file]{display:none}
 .info-close-btn{width:100%;padding:12px;background:var(--blue);border:none;border-radius:var(--radius-sm);color:var(--white);font-size:13px;font-weight:800;cursor:pointer;margin-top:16px}
 .info-close-btn:hover{background:var(--blue-bright)}
 
-/* === МОБИЛЬНАЯ ПОРТРЕТНАЯ ВЕРСИЯ === */
-body.mobile-portrait .app{padding:6px;gap:6px}
-body.mobile-portrait .header{padding:10px 12px}
-body.mobile-portrait .logo{font-size:12px;left:12px}
-body.mobile-portrait .rec-btn{padding:7px 18px;font-size:11px}
+/* === МОБИЛЬНАЯ ПОРТРЕТНАЯ ВЕРСИЯ - КОМПАКТНАЯ === */
+body.mobile-portrait .app{padding:4px;gap:4px}
+body.mobile-portrait .header{padding:6px 10px;margin-bottom:0}
+body.mobile-portrait .logo{font-size:11px;left:10px}
+body.mobile-portrait .rec-btn{padding:5px 16px;font-size:10px;gap:6px}
 body.mobile-portrait .rec-dot{width:6px;height:6px}
 
-body.mobile-portrait .main{flex-direction:column;flex:1 1 auto;min-height:0;height:auto;gap:6px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+body.mobile-portrait .main{flex-direction:column;flex:1 1 auto;min-height:0;height:auto;gap:4px;overflow:hidden}
 
-body.mobile-portrait .deck{flex:0 0 auto;min-height:0;padding:10px;gap:8px;display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"label label label" "turn info info" "turn time time" "eq eq eq" "ctrl ctrl ctrl";align-items:center}
-body.mobile-portrait .deck-label{grid-area:label;justify-self:center;font-size:9px;padding:2px 10px}
-body.mobile-portrait .turntable{grid-area:turn;width:90px;height:90px}
-body.mobile-portrait .tonearm{height:35px;width:2px;top:4px;right:4px}
-body.mobile-portrait .info-display{grid-area:info;max-width:none;width:auto;padding:4px 8px}
-body.mobile-portrait .track-name{font-size:10px}
-body.mobile-portrait .bpm-display{font-size:16px;margin-top:0}
-body.mobile-portrait .time-display{grid-area:time;max-width:none;width:auto;padding:3px 8px}
-body.mobile-portrait .time-text{font-size:10px}
-body.mobile-portrait .eq-panel{grid-area:eq;max-width:none;width:100%;padding:8px;gap:10px}
-body.mobile-portrait .knobs-row{gap:8px;width:100%;justify-content:space-around}
-body.mobile-portrait .knob{width:36px;height:36px}
+body.mobile-portrait .deck{flex:1 1 0;min-height:0;padding:6px;gap:4px;display:grid;grid-template-columns:70px 1fr auto;grid-template-rows:auto auto auto;grid-template-areas:"label label label" "turn info ctrl" "eq eq eq";align-items:center}
+body.mobile-portrait .deck-label{grid-area:label;justify-self:center;font-size:8px;padding:2px 8px;margin-bottom:2px}
+body.mobile-portrait .turntable{grid-area:turn;width:70px;height:70px}
+body.mobile-portrait .tonearm{height:28px;width:2px;top:3px;right:3px}
+body.mobile-portrait .label{font-size:8px}
+body.mobile-portrait .info-display{grid-area:info;max-width:none;width:auto;padding:4px 6px}
+body.mobile-portrait .track-name{font-size:9px}
+body.mobile-portrait .bpm-display{font-size:14px;margin-top:0}
+body.mobile-portrait .time-display{display:none}
+body.mobile-portrait .eq-panel{grid-area:eq;max-width:none;width:100%;padding:6px;gap:6px}
+body.mobile-portrait .knobs-row{gap:6px;width:100%;justify-content:space-around}
+body.mobile-portrait .knob{width:32px;height:32px}
 body.mobile-portrait .knob-label{font-size:7px}
-body.mobile-portrait .knob-value{font-size:8px}
-body.mobile-portrait .inv-btn{width:36px;height:36px;font-size:9px}
-body.mobile-portrait .controls-row{grid-area:ctrl;flex-direction:row;gap:14px;justify-content:center;padding-top:4px}
-body.mobile-portrait .play-btn{width:52px;height:52px;font-size:18px}
-body.mobile-portrait .loop-btn{width:44px;height:44px;font-size:15px}
+body.mobile-portrait .knob-value{font-size:7px;min-width:24px}
+body.mobile-portrait .inv-btn{width:32px;height:32px;font-size:8px}
+body.mobile-portrait .controls-row{grid-area:ctrl;flex-direction:column;gap:6px;align-items:center}
+body.mobile-portrait .play-btn{width:40px;height:40px;font-size:14px}
+body.mobile-portrait .loop-btn{width:32px;height:32px;font-size:12px}
 
-body.mobile-portrait .mixer{width:100%;flex:0 0 auto;padding:10px;gap:8px;flex-direction:column}
+body.mobile-portrait .mixer{width:100%;flex:0 0 auto;padding:6px;gap:6px;flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:center}
 body.mobile-portrait .mixer-title{display:none}
-body.mobile-portrait .info-btn{padding:6px 14px;font-size:10px}
-body.mobile-portrait .swap-btn{width:42px;height:42px;font-size:18px}
-body.mobile-portrait .faders-row{width:100%;border:none;padding:6px 0;gap:16px;justify-content:center}
-body.mobile-portrait .fader-group{gap:3px}
-body.mobile-portrait .fader-label{font-size:8px}
-body.mobile-portrait .fader-value{font-size:8px}
-body.mobile-portrait .fader-slider{height:80px}
-body.mobile-portrait .fader-slider::-webkit-slider-thumb{width:16px;height:16px}
-body.mobile-portrait .fader-slider::-moz-range-thumb{width:16px;height:16px}
-body.mobile-portrait .sync-btn{width:52px;height:52px;font-size:9px}
+body.mobile-portrait .info-btn{padding:4px 10px;font-size:9px;order:1}
+body.mobile-portrait .swap-btn{width:36px;height:36px;font-size:16px;order:2}
+body.mobile-portrait .faders-row{width:auto;flex:1;min-width:200px;border:none;padding:0;gap:12px;justify-content:center;order:3}
+body.mobile-portrait .fader-group{gap:2px}
+body.mobile-portrait .fader-label{font-size:7px}
+body.mobile-portrait .fader-value{font-size:7px}
+body.mobile-portrait .fader-slider{height:60px;width:5px}
+body.mobile-portrait .fader-slider::-webkit-slider-thumb{width:14px;height:14px}
+body.mobile-portrait .fader-slider::-moz-range-thumb{width:14px;height:14px}
+body.mobile-portrait .sync-btn{width:44px;height:44px;font-size:9px;order:4}
 body.mobile-portrait .sync-btn::before{top:3px;left:3px;right:3px;bottom:3px}
-body.mobile-portrait .crossfader-row{width:100%;order:10}
-body.mobile-portrait .vu-meter{order:11;height:5px}
-body.mobile-portrait .status{font-size:9px;padding:5px 10px}
+body.mobile-portrait .crossfader-row{display:none}
+body.mobile-portrait .vu-meter{flex-basis:100%;order:5;height:4px}
+body.mobile-portrait .status{font-size:8px;padding:4px 8px}
 
 body.mobile-landscape .app{transform:scale(var(--mscale,0.65));transform-origin:0 0;width:var(--msw,153.85vw);height:var(--msh,153.85vh);padding:8px;gap:8px}
 </style>
@@ -404,7 +401,7 @@ body.mobile-landscape .app{transform:scale(var(--mscale,0.65));transform-origin:
   <div class="info-modal-content">
     <div class="info-modal-title">DJ BOX <span>PRO</span> — Руководство</div>
     <div class="info-section"><div class="info-section-title">🎵 ЗАГРУЗКА</div><div class="info-section-text">Нажми на <b>пластинку</b> Deck A или B и выбери аудиофайл.</div></div>
-    <div class="info-section"><div class="info-section-title">▶️ УПРАВЛЕНИЕ</div><div class="info-section-text"><b>Play</b> — старт/пауза. <b>Loop</b> — повтор. <b>Кроссфейдер</b> — переход между деками.</div></div>
+    <div class="info-section"><div class="info-section-title">▶️ УПРАВЛЕНИЕ</div><div class="info-section-text"><b>Play</b> — старт/пауза. <b>Loop</b> — повтор. <b>Фейдеры</b> — громкость каналов.</div></div>
     <div class="info-section"><div class="info-section-title">🎛️ ЭКВАЛАЙЗЕР</div><div class="info-section-text">Тяни <b>ручки</b> вверх/вниз. <b>Hi</b> — высокие, <b>Lo</b> — низкие, <b>Fx</b> — эхо. <b>INV</b> — реверс.</div></div>
     <div class="info-section"><div class="info-section-title">🎙️ ЗАПИСЬ</div><div class="info-section-text">Кнопка <b>REC</b> в центре сверху. Файл сохранится автоматически.</div></div>
     <button class="info-close-btn" onclick="closeInfoModal()">Закрыть</button>
@@ -425,7 +422,7 @@ body.mobile-landscape .app{transform:scale(var(--mscale,0.65));transform-origin:
         <div class="tonearm" id="arm1"></div>
       </div>
       <div class="info-display"><div class="track-name" id="name1">— NO TRACK —</div><div class="bpm-display" id="bpm1">---.-</div></div>
-      <div class="time-display"><div class="time-text" id="time1">00:00 / 00:00</div></div>
+      <div class="controls-row"><button class="play-btn" id="play1" onclick="togglePlay(1)" disabled>▶</button><button class="loop-btn" id="loop1" onclick="toggleLoop(1)" disabled>🔁</button></div>
       <div class="eq-panel">
         <div class="knobs-row">
           <div class="knob-group"><div class="knob-label">Hi</div><div class="knob" id="knob-trbl1" data-deck="1" data-param="trbl"></div><div class="knob-value" id="trblVal1">0</div></div>
@@ -434,20 +431,18 @@ body.mobile-landscape .app{transform:scale(var(--mscale,0.65));transform-origin:
           <button class="inv-btn" id="invert1" onclick="toggleInvert(1)">INV</button>
         </div>
       </div>
-      <div class="controls-row"><button class="play-btn" id="play1" onclick="togglePlay(1)" disabled>▶</button><button class="loop-btn" id="loop1" onclick="toggleLoop(1)" disabled>🔁</button></div>
       <input type="file" id="file1" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg" onchange="loadTrack(1,this)">
     </div>
 
     <div class="mixer">
       <div class="mixer-title">Mixer</div>
-      <button class="info-btn" onclick="openInfoModal()">INFO</button>
-      <button class="swap-btn" onclick="swapDecks()" title="Swap">⇄</button>
       <div class="faders-row">
         <div class="fader-group"><div class="fader-label">A</div><div class="fader-value" id="volVal1">80</div><input type="range" class="fader-slider" id="vol1" min="0" max="100" value="80" step="1" oninput="updateVolume(1)"></div>
         <button class="sync-btn" id="syncBtn" onclick="syncDecks()">SYNC</button>
         <div class="fader-group"><div class="fader-label">B</div><div class="fader-value" id="volVal2">80</div><input type="range" class="fader-slider" id="vol2" min="0" max="100" value="80" step="1" oninput="updateVolume(2)"></div>
       </div>
-      <div class="crossfader-row"><div class="cf-label">A</div><input type="range" class="crossfader" id="crossfader" min="0" max="100" value="50" step="1" oninput="updateCrossfader()"><div class="cf-label">B</div></div>
+      <button class="swap-btn" onclick="swapDecks()" title="Swap">⇄</button>
+      <button class="info-btn" onclick="openInfoModal()">INFO</button>
       <div class="vu-meter"><div class="vu-fill" id="vuFill"></div></div>
     </div>
 
@@ -458,7 +453,7 @@ body.mobile-landscape .app{transform:scale(var(--mscale,0.65));transform-origin:
         <div class="tonearm" id="arm2"></div>
       </div>
       <div class="info-display"><div class="track-name" id="name2">— NO TRACK —</div><div class="bpm-display" id="bpm2">---.-</div></div>
-      <div class="time-display"><div class="time-text" id="time2">00:00 / 00:00</div></div>
+      <div class="controls-row"><button class="play-btn" id="play2" onclick="togglePlay(2)" disabled>▶</button><button class="loop-btn" id="loop2" onclick="toggleLoop(2)" disabled>🔁</button></div>
       <div class="eq-panel">
         <div class="knobs-row">
           <div class="knob-group"><div class="knob-label">Hi</div><div class="knob" id="knob-trbl2" data-deck="2" data-param="trbl"></div><div class="knob-value" id="trblVal2">0</div></div>
@@ -467,7 +462,6 @@ body.mobile-landscape .app{transform:scale(var(--mscale,0.65));transform-origin:
           <button class="inv-btn" id="invert2" onclick="toggleInvert(2)">INV</button>
         </div>
       </div>
-      <div class="controls-row"><button class="play-btn" id="play2" onclick="togglePlay(2)" disabled>▶</button><button class="loop-btn" id="loop2" onclick="toggleLoop(2)" disabled>🔁</button></div>
       <input type="file" id="file2" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg" onchange="loadTrack(2,this)">
     </div>
   </div>
@@ -767,20 +761,6 @@ function updateVolume(n){
   const v=parseFloat(document.getElementById('vol'+n).value);
   d.channelGain.gain.value=v/100;
   document.getElementById('volVal'+n).textContent=Math.round(v);
-  updateCrossfader();
-}
-
-function updateCrossfader(){
-  const cf=parseFloat(document.getElementById('crossfader').value);
-  const d1=decks[1],d2=decks[2];
-  if(!d1.chainBuilt||!d2.chainBuilt)return;
-  const v1=parseFloat(document.getElementById('vol1').value)/100;
-  const v2=parseFloat(document.getElementById('vol2').value)/100;
-  const cfNorm=cf/100;
-  const g1=Math.cos(cfNorm*Math.PI/2);
-  const g2=Math.sin(cfNorm*Math.PI/2);
-  d1.channelGain.gain.value=v1*g1;
-  d2.channelGain.gain.value=v2*g2;
 }
 
 function getSupportedMimeType(){
