@@ -478,6 +478,44 @@ let isRecording=false,mixRecorder=null,mixStreamDest=null,mixChunks=[],recStartT
 let vkReady=false;
 const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+// === VK INTERSTITIAL ADS ===
+let adIntervalTimer = null;
+let adFirstTimeout = null;
+let adPaused = false;
+const AD_INTERVAL = 10 * 60 * 1000; // 10 минут
+const AD_FIRST_DELAY = 60 * 1000;   // первая реклама через 1 минуту
+
+function showInterstitialAd(){
+  if(!window.vkBridge || !vkReady) return;
+  if(isRecording) return;              // не мешаем записи
+  if(document.hidden) return;          // не показываем в фоне
+  if(adPaused) return;
+
+  window.vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'interstitial' })
+    .then((data) => {
+      if(data && data.result){
+        setStatus('Реклама показана');
+      } else {
+        console.warn('Ad not shown:', data);
+      }
+    })
+    .catch((error) => {
+      console.warn('Ad error:', error);
+    });
+}
+
+function startAdTimer(){
+  stopAdTimer();
+  adPaused = false;
+  adFirstTimeout = setTimeout(() => { showInterstitialAd(); }, AD_FIRST_DELAY);
+  adIntervalTimer = setInterval(() => { showInterstitialAd(); }, AD_INTERVAL);
+}
+
+function stopAdTimer(){
+  if(adFirstTimeout){ clearTimeout(adFirstTimeout); adFirstTimeout = null; }
+  if(adIntervalTimer){ clearInterval(adIntervalTimer); adIntervalTimer = null; }
+}
+
 const knobState = {};
 const KNOB_CONFIG = {
   trbl: { min: -24, max: 24, default: 0 },
@@ -552,7 +590,12 @@ function applyKnobValue(deck, param, value) {
 
 function initVK(){
   if(!window.vkBridge)return;
-  window.vkBridge.send('VKWebAppInit').then(()=>{vkReady=true}).catch(()=>{});
+  window.vkBridge.send('VKWebAppInit')
+    .then(()=>{ 
+      vkReady = true;
+      startAdTimer(); // ← запуск таймера рекламы
+    })
+    .catch(()=>{});
 }
 
 function checkOnboarding(){
@@ -810,6 +853,10 @@ async function toggleRecording(){
   const btn=document.getElementById('recBtn'),lb=document.getElementById('recLabel');
   if(!isRecording){
     if(!initAudio())return;
+    // ▼ Пауза рекламы на время записи
+    adPaused = true;
+    stopAdTimer();
+
     const mimeType=getSupportedMimeType();
     if(mimeType===null){
       try{
@@ -853,6 +900,9 @@ function resetRecordingState(){
   isRecording=false;mixChunks=[];
   if(mixStreamDest){try{masterGain.disconnect(mixStreamDest)}catch(e){}}
   mixStreamDest=null;mixRecorder=null;
+  // ▼ Возобновляем рекламу после записи
+  adPaused = false;
+  if(vkReady) startAdTimer();
 }
 
 async function finishWavRecording(){
