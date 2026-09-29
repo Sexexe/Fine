@@ -478,35 +478,73 @@ let isRecording=false,mixRecorder=null,mixStreamDest=null,mixChunks=[],recStartT
 let vkReady=false;
 const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-// === VK INTERSTITIAL ADS ===
-let adIntervalTimer = null;
-let adFirstTimeout = null;
-let adPaused = false;
-const AD_INTERVAL = 10 * 60 * 1000; // 10 минут
-const AD_FIRST_DELAY = 60 * 1000;   // первая реклама через 1 минуту
+/* ============================================================
+   VK BRIDGE + МОНЕТИЗАЦИЯ (interstitial)
+   ============================================================ */
+let adIntervalTimer = null;   // таймер показа рекламы (каждые 10 мин)
+let adPreloadTimer  = null;   // таймер предзагрузки (каждые 5 мин)
+let adFirstTimeout  = null;   // первая реклама через 1 мин
+let adPaused = false;         // пауза во время записи
+const AD_INTERVAL     = 10 * 60 * 1000;  // 10 минут
+const AD_FIRST_DELAY  = 60 * 1000;       // 1 минута
+const AD_PRELOAD_STEP = 5 * 60 * 1000;   // 5 минут
 
-function showInterstitialAd(){
-  if(!window.vkBridge || !vkReady) return;
-  if(isRecording) return;              // не мешаем записи
-  if(document.hidden) return;          // не показываем в фоне
-  if(adPaused) return;
-
-  window.vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'interstitial' })
+/* Проверка готовности рекламы (предзагрузка) */
+function checkNativeAds(format){
+  if(!window.vkBridge || !vkReady) return Promise.resolve(false);
+  return window.vkBridge.send('VKWebAppCheckNativeAds', { ad_format: format })
     .then((data) => {
-      if(data && data.result){
-        setStatus('Реклама показана');
-      } else {
-        console.warn('Ad not shown:', data);
-      }
+      const ok = !!(data && data.result);
+      if (!ok) console.log('VK check: материалов нет для', format);
+      return ok;
     })
     .catch((error) => {
-      console.warn('Ad error:', error);
+      console.warn('VKWebAppCheckNativeAds error:', error);
+      return false;
     });
+}
+
+/* Показ межстраничной рекламы */
+function showInterstitialAd(){
+  if(!window.vkBridge || !vkReady) return;
+  if(isRecording) return;       // не мешаем записи
+  if(document.hidden) return;   // не показываем в фоне
+  if(adPaused) return;
+
+  checkNativeAds('interstitial').then((ready) => {
+    if(!ready){
+      // материалов нет — просто пропускаем, не ломаем игру
+      console.log('Interstitial: пропуск (нет материалов)');
+      return;
+    }
+    window.vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'interstitial' })
+      .then((data) => {
+        if(data && data.result){
+          setStatus('Реклама показана');
+          console.log('Interstitial: реклама показана');
+        } else {
+          console.warn('Interstitial: не показана', data);
+        }
+      })
+      .catch((error) => {
+        console.warn('Interstitial error:', error);
+      });
+  });
+}
+
+/* Предзагрузка материалов (рекомендация VK) */
+function startAdPreload(){
+  if(adPreloadTimer) return;
+  adPreloadTimer = setInterval(() => {
+    if(isRecording || document.hidden || adPaused) return;
+    checkNativeAds('interstitial');
+  }, AD_PRELOAD_STEP);
 }
 
 function startAdTimer(){
   stopAdTimer();
   adPaused = false;
+  startAdPreload();
   adFirstTimeout = setTimeout(() => { showInterstitialAd(); }, AD_FIRST_DELAY);
   adIntervalTimer = setInterval(() => { showInterstitialAd(); }, AD_INTERVAL);
 }
@@ -514,8 +552,35 @@ function startAdTimer(){
 function stopAdTimer(){
   if(adFirstTimeout){ clearTimeout(adFirstTimeout); adFirstTimeout = null; }
   if(adIntervalTimer){ clearInterval(adIntervalTimer); adIntervalTimer = null; }
+  if(adPreloadTimer){ clearInterval(adPreloadTimer); adPreloadTimer = null; }
 }
 
+/* Инициализация VK Bridge */
+function initVK(){
+  if(!window.vkBridge) return;
+  window.vkBridge.send('VKWebAppInit')
+    .then(() => {
+      vkReady = true;
+      startAdTimer();
+    })
+    .catch((err) => {
+      console.warn('VKWebAppInit error:', err);
+      vkReady = false;
+    });
+}
+
+/* Пауза/возобновление рекламы при скрытии вкладки */
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){
+    adPaused = true;
+  } else {
+    adPaused = false;
+  }
+});
+
+/* ============================================================
+   КНОБЫ, UI, АУДИО — без изменений
+   ============================================================ */
 const knobState = {};
 const KNOB_CONFIG = {
   trbl: { min: -24, max: 24, default: 0 },
@@ -586,16 +651,6 @@ function applyKnobValue(deck, param, value) {
     d.delayDry.gain.value = value > 0 ? 0.8 : 1;
     valEl.textContent = Math.round(value);
   }
-}
-
-function initVK(){
-  if(!window.vkBridge)return;
-  window.vkBridge.send('VKWebAppInit')
-    .then(()=>{ 
-      vkReady = true;
-      startAdTimer(); // ← запуск таймера рекламы
-    })
-    .catch(()=>{});
 }
 
 function checkOnboarding(){
@@ -853,7 +908,7 @@ async function toggleRecording(){
   const btn=document.getElementById('recBtn'),lb=document.getElementById('recLabel');
   if(!isRecording){
     if(!initAudio())return;
-    // ▼ Пауза рекламы на время записи
+    /* ▼ Пауза рекламы на время записи */
     adPaused = true;
     stopAdTimer();
 
@@ -900,7 +955,7 @@ function resetRecordingState(){
   isRecording=false;mixChunks=[];
   if(mixStreamDest){try{masterGain.disconnect(mixStreamDest)}catch(e){}}
   mixStreamDest=null;mixRecorder=null;
-  // ▼ Возобновляем рекламу после записи
+  /* ▼ Возобновляем рекламу после записи */
   adPaused = false;
   if(vkReady) startAdTimer();
 }
