@@ -481,15 +481,14 @@ const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test
 /* ============================================================
    VK BRIDGE + МОНЕТИЗАЦИЯ (interstitial)
    ============================================================ */
-let adIntervalTimer = null;   // таймер показа рекламы (каждые 10 мин)
-let adPreloadTimer  = null;   // таймер предзагрузки (каждые 5 мин)
-let adFirstTimeout  = null;   // первая реклама через 1 мин
-let adPaused = false;         // пауза во время записи
-const AD_INTERVAL     = 10 * 60 * 1000;  // 10 минут
-const AD_FIRST_DELAY  = 60 * 1000;       // 1 минута
-const AD_PRELOAD_STEP = 5 * 60 * 1000;   // 5 минут
+let adIntervalTimer = null;
+let adPreloadTimer  = null;
+let adFirstTimeout  = null;
+let adPaused = false;
+const AD_INTERVAL     = 10 * 60 * 1000;
+const AD_FIRST_DELAY  = 60 * 1000;
+const AD_PRELOAD_STEP = 5 * 60 * 1000;
 
-/* Проверка готовности рекламы (предзагрузка) */
 function checkNativeAds(format){
   if(!window.vkBridge || !vkReady) return Promise.resolve(false);
   return window.vkBridge.send('VKWebAppCheckNativeAds', { ad_format: format })
@@ -504,16 +503,14 @@ function checkNativeAds(format){
     });
 }
 
-/* Показ межстраничной рекламы */
 function showInterstitialAd(){
   if(!window.vkBridge || !vkReady) return;
-  if(isRecording) return;       // не мешаем записи
-  if(document.hidden) return;   // не показываем в фоне
+  if(isRecording) return;
+  if(document.hidden) return;
   if(adPaused) return;
 
   checkNativeAds('interstitial').then((ready) => {
     if(!ready){
-      // материалов нет — просто пропускаем, не ломаем игру
       console.log('Interstitial: пропуск (нет материалов)');
       return;
     }
@@ -532,7 +529,6 @@ function showInterstitialAd(){
   });
 }
 
-/* Предзагрузка материалов (рекомендация VK) */
 function startAdPreload(){
   if(adPreloadTimer) return;
   adPreloadTimer = setInterval(() => {
@@ -555,7 +551,6 @@ function stopAdTimer(){
   if(adPreloadTimer){ clearInterval(adPreloadTimer); adPreloadTimer = null; }
 }
 
-/* Инициализация VK Bridge */
 function initVK(){
   if(!window.vkBridge) return;
   window.vkBridge.send('VKWebAppInit')
@@ -569,7 +564,6 @@ function initVK(){
     });
 }
 
-/* Пауза/возобновление рекламы при скрытии вкладки */
 document.addEventListener('visibilitychange', () => {
   if(document.hidden){
     adPaused = true;
@@ -579,7 +573,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ============================================================
-   КНОБЫ, UI, АУДИО — без изменений
+   КНОБЫ, UI, АУДИО
    ============================================================ */
 const knobState = {};
 const KNOB_CONFIG = {
@@ -700,7 +694,7 @@ document.addEventListener('touchstart',()=>{if(!audioCtx)initAudio();else if(aud
 document.addEventListener('click',()=>{if(!audioCtx)initAudio();else if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});});
 
 function startVUMeter(){const bl=analyser.frequencyBinCount,da=new Uint8Array(bl),vf=document.getElementById('vuFill');(function u(){analyser.getByteFrequencyData(da);let s=0;for(let i=0;i<bl;i++)s+=da[i];vf.style.width=Math.min(100,(s/bl/128)*100)+'%';vuAnimId=requestAnimationFrame(u)})()}
-function startTimeUpdater(){(function u(){for(let n=1;n<=2;n++){const d=decks[n];if(!d.buffer)continue;const td=d.buffer.duration;let ct=d.playing?Math.max(0,audioCtx.currentTime-d.startTime):d.pauseOffset;if(d.loop&&ct>=td)ct=ct%td;ct=Math.max(0,Math.min(td,ct));document.getElementById('time'+n).textContent=String(Math.floor(ct/60)).padStart(2,'0')+':'+String(Math.floor(ct%60)).padStart(2,'0')+' / '+String(Math.floor(td/60)).padStart(2,'0')+':'+String(Math.floor(td%60)).padStart(2,'0')}timeUpdateId=requestAnimationFrame(u)})()}
+function startTimeUpdater(){(function u(){for(let n=1;n<=2;n++){const d=decks[n];if(!d.buffer)continue;const td=d.buffer.duration;let ct=d.playing?Math.max(0,audioCtx.currentTime-d.startTime):d.pauseOffset;if(d.loop&&ct>=td)ct=ct%td;ct=Math.max(0,Math.min(td,ct));const te=document.getElementById('time'+n);if(te)te.textContent=String(Math.floor(ct/60)).padStart(2,'0')+':'+String(Math.floor(ct%60)).padStart(2,'0')+' / '+String(Math.floor(td/60)).padStart(2,'0')+':'+String(Math.floor(td%60)).padStart(2,'0')}timeUpdateId=requestAnimationFrame(u)})()}
 
 function reverseBuffer(b){const r=audioCtx.createBuffer(b.numberOfChannels,b.length,b.sampleRate);for(let c=0;c<b.numberOfChannels;c++){const s=b.getChannelData(c),d=r.getChannelData(c);for(let i=0;i<s.length;i++)d[i]=s[s.length-1-i]}return r}
 
@@ -738,7 +732,25 @@ function buildAudioChain(n){
   }catch(e){return false}
 }
 
-async function decodeWithRetry(arrayBuffer,attempts=3){for(let i=0;i<attempts;i++){try{return await audioCtx.decodeAudioData(arrayBuffer)}catch(e){if(i===attempts-1)throw e;await new Promise(r=>setTimeout(r,200*(i+1)))}}}
+/* ============================================================
+   ФИКС ОШИБКИ "Cannot decode detached ArrayBuffer"
+   decodeAudioData() забирает владение ArrayBuffer и делает его detached.
+   Перед каждой попыткой создаём копию через .slice(0)
+   ============================================================ */
+async function decodeWithRetry(arrayBuffer, attempts = 3) {
+  let lastError = null;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const copy = arrayBuffer.slice(0);
+      return await audioCtx.decodeAudioData(copy);
+    } catch (e) {
+      lastError = e;
+      console.warn(`decodeAudioData attempt ${i + 1} failed:`, e);
+      if (i === attempts - 1) throw lastError;
+      await new Promise(r => setTimeout(r, 200 * (i + 1)));
+    }
+  }
+}
 
 async function loadTrack(n,input){
   const f=input.files[0];if(!f)return;
@@ -759,7 +771,14 @@ async function loadTrack(n,input){
     const pb=document.getElementById('play'+n);pb.disabled=false;pb.textContent='▶';pb.classList.remove('active');
     document.getElementById('loop'+n).disabled=false;
     setStatus('Deck '+(n===1?'A':'B')+' загружен'+(d.bpm>0?' • '+d.bpm.toFixed(1)+' BPM':''));
-  }catch(e){console.error('Load error:',e);setStatus('Ошибка: '+(e.name==='EncodingError'?'неподдерживаемый формат':e.message));input.value=''}
+  }catch(e){
+    console.error('Load error:',e);
+    let msg=e.message||'неизвестная ошибка';
+    if(e.name==='EncodingError')msg='неподдерживаемый формат';
+    else if(msg.includes('detached'))msg='ошибка буфера, попробуйте ещё раз';
+    setStatus('Ошибка: '+msg);
+    input.value='';
+  }
 }
 
 function startSource(n,offset){
@@ -908,7 +927,6 @@ async function toggleRecording(){
   const btn=document.getElementById('recBtn'),lb=document.getElementById('recLabel');
   if(!isRecording){
     if(!initAudio())return;
-    /* ▼ Пауза рекламы на время записи */
     adPaused = true;
     stopAdTimer();
 
@@ -955,7 +973,6 @@ function resetRecordingState(){
   isRecording=false;mixChunks=[];
   if(mixStreamDest){try{masterGain.disconnect(mixStreamDest)}catch(e){}}
   mixStreamDest=null;mixRecorder=null;
-  /* ▼ Возобновляем рекламу после записи */
   adPaused = false;
   if(vkReady) startAdTimer();
 }
